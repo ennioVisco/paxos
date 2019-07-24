@@ -1,19 +1,20 @@
-package Base;
+package MajorityStrategies;
 
+import Base.Legislator;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
 public class RandomMajority implements MajorityStrategy {
     @Override
-    public Set<Legislator> selectMajoritySet(Set<Legislator> ls) {
+    public Set<Integer> selectMajoritySet(Set<Integer> ls) {
         return randomChoice(ls);
     }
 
-    private Set<Legislator> randomChoice(@NotNull Set<Legislator> ls) {
+    private Set<Integer> randomChoice(@NotNull Set<Integer> ls) {
         int i;
         int size = (ls.size() / 2) + 1;
-        Set<Legislator> quorum = new HashSet<>();
+        Set<Integer> quorum = new HashSet<>();
         for (i = 0; i < size; i++) {
             quorum.add(choice(ls));
         }

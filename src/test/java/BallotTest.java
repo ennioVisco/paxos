@@ -1,6 +1,7 @@
 import Base.Ballot;
 import Base.BasicDecrees;
 import Base.Legislator;
+import Base.Vote;
 import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,7 +15,7 @@ class BallotTest {
     private Legislator l1;
     private Legislator l2;
     private Legislator l3;
-    private HashSet<Legislator> ls;
+    private HashSet<Integer> ls;
     private Ballot b;
 
     @BeforeEach
@@ -23,26 +24,26 @@ class BallotTest {
         l2 = new Legislator();
         l3 = new Legislator();
         ls = new HashSet<>();
-        ls.add(l1);
-        ls.add(l2);
+        ls.add(l1.getMemberID());
+        ls.add(l2.getMemberID());
         b = new Ballot(1, BasicDecrees.TRIVIAL_DECREE, ls);
     }
 
     @Test
     void addVote() {
-        assertFalse(b.getVoters().equals(b.getQuorum()));
-        b.addVote(l1);
-        b.addVote(l2);
-        assertTrue(b.getVoters().equals(b.getQuorum()));
-        b.addVote(l3);
-        assertTrue(b.getVoters().equals(b.getQuorum()));
+        assertFalse(b.getVotes().equals(b.getQuorum()));
+        b.addVote(new Vote(l1, b, BasicDecrees.TRIVIAL_DECREE));
+        b.addVote(new Vote(l2, b, BasicDecrees.TRIVIAL_DECREE));
+        assertTrue(b.getVotes().equals(b.getQuorum()));
+        b.addVote(new Vote(l3, b, BasicDecrees.TRIVIAL_DECREE));
+        assertTrue(b.getVotes().equals(b.getQuorum()));
     }
 
     @Test
     void checkStatus() {
         assertFalse(b.checkStatus());
-        b.addVote(l1);
-        b.addVote(l2);
+        b.addVote(new Vote(l1, b, BasicDecrees.TRIVIAL_DECREE));
+        b.addVote(new Vote(l2, b, BasicDecrees.TRIVIAL_DECREE));
         assertTrue(b.checkStatus());
     }
 

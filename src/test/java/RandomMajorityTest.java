@@ -1,6 +1,6 @@
 import Base.Legislator;
-import Base.MajorityStrategy;
-import Base.RandomMajority;
+import MajorityStrategies.MajorityStrategy;
+import MajorityStrategies.RandomMajority;
 import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,7 +14,7 @@ class RandomMajorityTest {
     private Legislator l3;
     private Legislator l4;
     private Legislator l5;
-    Set<Legislator> ls;
+    private Set<Integer> ls;
 
     @BeforeEach
     void setUp() {
@@ -24,17 +24,17 @@ class RandomMajorityTest {
         l4 = new Legislator();
         l5 = new Legislator();
         ls = new HashSet<>();
-        ls.add(l1);
-        ls.add(l2);
-        ls.add(l3);
-        ls.add(l4);
-        ls.add(l5);
+        ls.add(l1.getMemberID());
+        ls.add(l2.getMemberID());
+        ls.add(l3.getMemberID());
+        ls.add(l4.getMemberID());
+        ls.add(l5.getMemberID());
     }
 
     @Test
     void selectMajoritySet() {
         MajorityStrategy rule = new RandomMajority();
-        Set<Legislator> quorum = rule.selectMajoritySet(ls);
+        Set<Integer> quorum = rule.selectMajoritySet(ls);
         Assert.assertEquals(3, quorum.size());
     }
 }

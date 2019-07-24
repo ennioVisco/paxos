@@ -18,29 +18,29 @@ public class Ballot implements Comparable<Ballot> {
     // after all a bijection can easily be defined between Integers and positive numbers.
     private final Integer ballotID;
     private final Decree decree;
-    private final Set<Legislator> quorum;
-    private Set<Legislator> voters;
+    private final Set<Integer> quorum;
+    private Set<Vote> votes;
 
     @Contract(pure = true)
-    public Ballot(int ballotID, Decree decree, Set<Legislator> quorum) {
+    public Ballot(int ballotID, Decree decree, Set<Integer> quorum) {
         this.ballotID = ballotID;
         this.decree = decree;
         this.quorum = quorum;
-        this.voters = new HashSet<>();
+        this.votes = new HashSet<>();
     }
 
     /**
      * This method is the only modifier for the only mutable parameter of a ballot
      * i.e. the number of people who voted.
-     * @param voter legislator who wants to pass the decree of the current ballot.
+     * @param vote legislator who wants to pass the decree of the current ballot.
      */
-    public void addVote(Legislator voter) {
-        if(quorum.contains(voter))
-            voters.add(voter);
+    public void addVote(Vote vote) {
+        if(quorum.contains(vote.getLegislator()))
+            votes.add(vote);
     }
 
     public boolean checkStatus() {
-        return quorum.equals(voters);
+        return quorum.equals(votes);
     }
 
     @Override
@@ -52,11 +52,11 @@ public class Ballot implements Comparable<Ballot> {
         return ballotID;
     }
 
-    public Set<Legislator> getVoters() {
-        return voters;
+    public Set<Vote> getVotes() {
+        return votes;
     }
 
-    public Set<Legislator> getQuorum() {
+    public Set<Integer> getQuorum() {
         return quorum;
     }
 
