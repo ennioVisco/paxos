@@ -2,22 +2,26 @@ package Base;
 
 import Messages.Message;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 public class Chamber {
-    private Map<Integer,Legislator> members;
+    private Map<UUID,Legislator> members;
 
+    public Chamber() {
+        members = new HashMap<>();
+    }
 
-
-    public Integer addMember(Legislator legislator) {
+    public UUID addMember(Legislator legislator) {
         //TODO: should generate a unique ID
-        Integer memberID = 1;
+        UUID memberID = UUID.randomUUID();
         members.put(memberID, legislator);
         return memberID;
     }
 
-    public Set<Integer> getMembers() {
+    public Set<UUID> getMembers() {
         return members.keySet();
     }
 

@@ -7,14 +7,14 @@ import java.util.*;
 
 public class RandomMajority implements MajorityStrategy {
     @Override
-    public Set<Integer> selectMajoritySet(Set<Integer> ls) {
+    public Set<UUID> selectMajoritySet(Set<UUID> ls) {
         return randomChoice(ls);
     }
 
-    private Set<Integer> randomChoice(@NotNull Set<Integer> ls) {
+    private Set<UUID> randomChoice(@NotNull Set<UUID> ls) {
         int i;
         int size = (ls.size() / 2) + 1;
-        Set<Integer> quorum = new HashSet<>();
+        Set<UUID> quorum = new HashSet<>();
         for (i = 0; i < size; i++) {
             quorum.add(choice(ls));
         }

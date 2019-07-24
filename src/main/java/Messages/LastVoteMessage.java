@@ -4,21 +4,23 @@ import Base.Legislator;
 import Base.Vote;
 import javafx.util.Pair;
 
+import java.util.UUID;
+
 public class LastVoteMessage implements Message{
-    private final Integer sender;
-    private Integer recipient;
+    private final UUID sender;
+    private UUID recipient;
 
     private final Vote vote;
     private final Integer bound;
 
-    public LastVoteMessage(Integer recipient, Pair<Integer,Vote> message, Integer sender) {
+    public LastVoteMessage(UUID recipient, Pair<Integer,Vote> message, UUID sender) {
         this.recipient = recipient;
         this.bound = message.getKey();
         this.vote = message.getValue();
         this.sender = sender;
     }
 
-    public LastVoteMessage(Integer recipient, Pair<Integer,Vote> message, Legislator sender) {
+    public LastVoteMessage(UUID recipient, Pair<Integer,Vote> message, Legislator sender) {
         this(recipient, message, sender.getMemberID());
     }
 
@@ -32,17 +34,17 @@ public class LastVoteMessage implements Message{
 
 
     @Override
-    public Integer getSender() {
+    public UUID getSender() {
         return sender;
     }
 
     @Override
-    public Integer getRecipient() {
+    public UUID getRecipient() {
         return recipient;
     }
 
     @Override
-    public void setRecipient(Integer recipient) {
+    public void setRecipient(UUID recipient) {
         this.recipient = recipient;
     }
 }

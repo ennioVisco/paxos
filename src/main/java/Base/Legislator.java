@@ -16,7 +16,7 @@ public class Legislator {
     private Chamber chamber;
     private MajorityStrategy majorityRule;
     private List<Decree> decrees;
-    private Integer memberID;
+    private UUID memberID;
 
 
     private Ledger ledger;
@@ -25,7 +25,7 @@ public class Legislator {
     private Set<Vote> lastVotesBallot;
 
 
-    private Set<Integer> quorum;
+    private Set<UUID> quorum;
     private Ballot currentBallot;
     private int ballotID;
 
@@ -44,19 +44,19 @@ public class Legislator {
 
     public void nextBallot() {
         ballotID = ledger.getNewBallotId();
-        for (Integer r : quorum)
+        for (UUID r : quorum)
             send(new NextBallotMessage(r, ballotID, this));
     }
 
-    private void lastVote(Integer r, Integer bound) {
-        Vote v = ledger.getLastVote(bound, r);
+    private void lastVote(UUID r, Integer bound) {
+        Vote v = ledger.getLastVote(bound);
         Pair<Integer, Vote> message = new Pair<>(bound, v);
         ledger.addVoteMessage(new LastVoteMessage(r, message, this));
         send(new LastVoteMessage(r, message, this));
     }
 
     //called on receive of LastVote()
-    private void processLastVote(Integer s, Vote v, Integer b) {
+    private void processLastVote(UUID s, Vote v, Integer b) {
         if (quorum.contains(s) && !lastVotesBallot.contains(v))
             lastVotesBallot.add(v);
         if (lastVotesBallot.size() == quorum.size())
@@ -64,7 +64,7 @@ public class Legislator {
     }
 
     //TODO: should be able to choose not to vote
-    private void vote(Integer r, Ballot b) {
+    private void vote(UUID r, Ballot b) {
         Vote v = new Vote(this, b, b.getDecree());
         send(new VotedMessage(r, v, this));
     }
@@ -85,7 +85,7 @@ public class Legislator {
         Decree d = chooseDecree();
         currentBallot = new Ballot(b, d, quorum);
 
-        for(Integer l : quorum) {
+        for(UUID l : quorum) {
             send(new BeginBallotMessage(l, currentBallot, this));
         }
     }
@@ -142,7 +142,7 @@ public class Legislator {
         this(new Chamber());
     }
 
-    public Integer getMemberID() {
+    public UUID getMemberID() {
         return memberID;
     }
 

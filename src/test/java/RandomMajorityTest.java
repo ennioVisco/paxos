@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 class RandomMajorityTest {
     private Legislator l1;
@@ -14,7 +15,7 @@ class RandomMajorityTest {
     private Legislator l3;
     private Legislator l4;
     private Legislator l5;
-    private Set<Integer> ls;
+    private Set<UUID> ls;
 
     @BeforeEach
     void setUp() {
@@ -34,7 +35,7 @@ class RandomMajorityTest {
     @Test
     void selectMajoritySet() {
         MajorityStrategy rule = new RandomMajority();
-        Set<Integer> quorum = rule.selectMajoritySet(ls);
+        Set<UUID> quorum = rule.selectMajoritySet(ls);
         Assert.assertEquals(3, quorum.size());
     }
 }

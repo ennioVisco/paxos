@@ -3,20 +3,22 @@ package Messages;
 import Base.Legislator;
 import Base.Vote;
 
+import java.util.UUID;
+
 public class VotedMessage implements Message {
 
-    private final Integer sender;
-    private Integer recipient;
+    private final UUID sender;
+    private UUID recipient;
 
     private final Vote vote;
 
-    public VotedMessage(Integer recipient, Vote message, Integer sender) {
+    public VotedMessage(UUID recipient, Vote message, UUID sender) {
         this.vote = message;
         this.sender = sender;
         this.recipient = recipient;
     }
 
-    public VotedMessage(Integer recipient, Vote message, Legislator sender) {
+    public VotedMessage(UUID recipient, Vote message, Legislator sender) {
         this(recipient, message, sender.getMemberID());
     }
 
@@ -26,17 +28,17 @@ public class VotedMessage implements Message {
 
 
     @Override
-    public Integer getSender() {
+    public UUID getSender() {
         return sender;
     }
 
     @Override
-    public Integer getRecipient() {
+    public UUID getRecipient() {
         return recipient;
     }
 
     @Override
-    public void setRecipient(Integer recipient) {
+    public void setRecipient(UUID recipient) {
         this.recipient = recipient;
     }
 }

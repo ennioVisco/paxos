@@ -5,6 +5,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * The getBallot class is a data class defined like of 4 components:
@@ -18,11 +19,11 @@ public class Ballot implements Comparable<Ballot> {
     // after all a bijection can easily be defined between Integers and positive numbers.
     private final Integer ballotID;
     private final Decree decree;
-    private final Set<Integer> quorum;
+    private final Set<UUID> quorum;
     private Set<Vote> votes;
 
     @Contract(pure = true)
-    public Ballot(int ballotID, Decree decree, Set<Integer> quorum) {
+    public Ballot(int ballotID, Decree decree, Set<UUID> quorum) {
         this.ballotID = ballotID;
         this.decree = decree;
         this.quorum = quorum;
@@ -35,12 +36,13 @@ public class Ballot implements Comparable<Ballot> {
      * @param vote legislator who wants to pass the decree of the current ballot.
      */
     public void addVote(Vote vote) {
-        if(quorum.contains(vote.getLegislator()))
-            votes.add(vote);
+        if(quorum.contains(vote.getLegislator().getMemberID()))
+            if(!votes.contains(vote.getLegislator().getMemberID()))
+                votes.add(vote);
     }
 
     public boolean checkStatus() {
-        return quorum.equals(votes);
+        return quorum.size() == votes.size();
     }
 
     @Override
@@ -56,7 +58,7 @@ public class Ballot implements Comparable<Ballot> {
         return votes;
     }
 
-    public Set<Integer> getQuorum() {
+    public Set<UUID> getQuorum() {
         return quorum;
     }
 

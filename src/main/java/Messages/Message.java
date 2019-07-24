@@ -1,10 +1,12 @@
 package Messages;
 
+import java.util.UUID;
+
 public interface Message {
 
-    Integer getSender();
+    UUID getSender();
 
-    Integer getRecipient();
+    UUID getRecipient();
 
-    void setRecipient(Integer recipient);
+    void setRecipient(UUID recipient);
 }

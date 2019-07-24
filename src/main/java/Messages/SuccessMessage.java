@@ -4,14 +4,16 @@ import Base.Ballot;
 import Base.Legislator;
 import Base.Vote;
 
+import java.util.UUID;
+
 public class SuccessMessage implements Message {
 
-    private final Integer sender;
-    private Integer recipient;
+    private final UUID sender;
+    private UUID recipient;
 
     private final Ballot ballot;
 
-    public SuccessMessage(Ballot message, Integer sender) {
+    public SuccessMessage(Ballot message, UUID sender) {
         this.ballot = message;
         this.sender = sender;
         this.recipient = null;
@@ -26,17 +28,17 @@ public class SuccessMessage implements Message {
     }
 
 
-    public void setRecipient(Integer recipient) {
+    public void setRecipient(UUID recipient) {
         this.recipient = recipient;
     }
 
     @Override
-    public Integer getSender() {
+    public UUID getSender() {
         return sender;
     }
 
     @Override
-    public Integer getRecipient() {
+    public UUID getRecipient() {
         return recipient;
     }
 }

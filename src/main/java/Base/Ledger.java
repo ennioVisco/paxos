@@ -2,10 +2,7 @@ package Base;
 
 import Messages.LastVoteMessage;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  *
@@ -17,7 +14,7 @@ public class Ledger {
 
     private List<Ballot> approvedBallots;
 
-    public Vote getLastVote(Integer max, Integer requester) {
+    public Vote getLastVote(Integer max) {
         Vote bind = Vote.NullVote(legislator);
         for(Integer b: previousVotes.keySet()){
             if(b < max && bind.getBallot().getBallotID() < b) {

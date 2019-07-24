@@ -7,6 +7,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -15,7 +16,7 @@ class BallotTest {
     private Legislator l1;
     private Legislator l2;
     private Legislator l3;
-    private HashSet<Integer> ls;
+    private HashSet<UUID> ls;
     private Ballot b;
 
     @BeforeEach
@@ -31,12 +32,12 @@ class BallotTest {
 
     @Test
     void addVote() {
-        assertFalse(b.getVotes().equals(b.getQuorum()));
+        assertNotEquals(b.getVotes().size(), b.getQuorum().size());
         b.addVote(new Vote(l1, b, BasicDecrees.TRIVIAL_DECREE));
         b.addVote(new Vote(l2, b, BasicDecrees.TRIVIAL_DECREE));
-        assertTrue(b.getVotes().equals(b.getQuorum()));
+        assertEquals(b.getVotes().size(), b.getQuorum().size());
         b.addVote(new Vote(l3, b, BasicDecrees.TRIVIAL_DECREE));
-        assertTrue(b.getVotes().equals(b.getQuorum()));
+        assertEquals(b.getVotes().size(), b.getQuorum().size());
     }
 
     @Test
