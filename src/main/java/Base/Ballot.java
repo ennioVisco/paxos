@@ -1,7 +1,10 @@
+package Base;
+
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
+import java.util.Set;
 
 /**
  * The getBallot class is a data class defined like of 4 components:
@@ -15,11 +18,11 @@ public class Ballot implements Comparable<Ballot> {
     // after all a bijection can easily be defined between Integers and positive numbers.
     private final Integer ballotID;
     private final Decree decree;
-    private final HashSet<Legislator> quorum;
-    private HashSet<Legislator> voters;
+    private final Set<Legislator> quorum;
+    private Set<Legislator> voters;
 
     @Contract(pure = true)
-    public Ballot(int ballotID, Decree decree, HashSet<Legislator> quorum) {
+    public Ballot(int ballotID, Decree decree, Set<Legislator> quorum) {
         this.ballotID = ballotID;
         this.decree = decree;
         this.quorum = quorum;
@@ -49,11 +52,11 @@ public class Ballot implements Comparable<Ballot> {
         return ballotID;
     }
 
-    public HashSet<Legislator> getVoters() {
+    public Set<Legislator> getVoters() {
         return voters;
     }
 
-    public HashSet<Legislator> getQuorum() {
+    public Set<Legislator> getQuorum() {
         return quorum;
     }
 

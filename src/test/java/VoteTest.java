@@ -1,3 +1,7 @@
+import Base.Ballot;
+import Base.BasicDecrees;
+import Base.Legislator;
+import Base.Vote;
 import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,8 +23,8 @@ class VoteTest {
     void nullVote() {
         Vote v1 = Vote.NullVote(l1);
         Assert.assertEquals(v1.getBallot().getBallotID(), -1);
-        Assert.assertEquals(v1.getDecree(), BasicDecrees.NULL_DECREE);
-        Assert.assertEquals(v1.getBallot().getDecree(), BasicDecrees.NULL_DECREE);
+        Assert.assertEquals(v1.getDecree(), BasicDecrees.BLANK_DECREE);
+        Assert.assertEquals(v1.getBallot().getDecree(), BasicDecrees.BLANK_DECREE);
     }
 
     @Test

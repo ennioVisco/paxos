@@ -1,3 +1,6 @@
+import Base.Ballot;
+import Base.BasicDecrees;
+import Base.Legislator;
 import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

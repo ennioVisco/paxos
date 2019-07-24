@@ -1,4 +1,6 @@
+package Base;
+
 public enum BasicDecrees implements Decree {
-    NULL_DECREE,
+    BLANK_DECREE,
     TRIVIAL_DECREE
 }

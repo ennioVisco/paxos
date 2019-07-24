@@ -1,10 +1,12 @@
+package Base;
+
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
 
 /**
- * The Vote class is an immutable data class defined like this v:= <l,b,d>
+ * The Base.Vote class is an immutable data class defined like this v:= <l,b,d>
  * 1) l is the legislator voting
  * 2) b is the current ballot
  * 3) d is the decree being voted
@@ -25,8 +27,8 @@ public class Vote implements Comparable<Vote> {
     @NotNull
     @Contract(pure = true)
     public static Vote NullVote(Legislator l) {
-        Ballot ballot = new Ballot(-1, BasicDecrees.NULL_DECREE, new HashSet<>());
-        return new Vote (l, ballot, BasicDecrees.NULL_DECREE);
+        Ballot ballot = new Ballot(-1, BasicDecrees.BLANK_DECREE, new HashSet<>());
+        return new Vote (l, ballot, BasicDecrees.BLANK_DECREE);
     }
 
     public Legislator getLegislator() {
