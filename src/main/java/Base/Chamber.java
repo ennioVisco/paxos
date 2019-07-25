@@ -7,6 +7,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+/**
+ * Chambers are responsible for dispatching messages
+ * and for informing legislators of joiners and leavers.
+ */
 public class Chamber {
     private Map<UUID,Legislator> members;
 

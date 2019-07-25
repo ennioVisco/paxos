@@ -1,3 +1,4 @@
+import Base.Chamber;
 import Base.Legislator;
 import MajorityStrategies.MajorityStrategy;
 import MajorityStrategies.RandomMajority;
@@ -10,20 +11,17 @@ import java.util.Set;
 import java.util.UUID;
 
 class RandomMajorityTest {
-    private Legislator l1;
-    private Legislator l2;
-    private Legislator l3;
-    private Legislator l4;
-    private Legislator l5;
+
     private Set<UUID> ls;
 
     @BeforeEach
     void setUp() {
-        l1 = new Legislator();
-        l2 = new Legislator();
-        l3 = new Legislator();
-        l4 = new Legislator();
-        l5 = new Legislator();
+        Chamber c = new Chamber();
+        Legislator l1 = new Legislator(c);
+        Legislator l2 = new Legislator(c);
+        Legislator l3 = new Legislator(c);
+        Legislator l4 = new Legislator(c);
+        Legislator l5 = new Legislator(c);
         ls = new HashSet<>();
         ls.add(l1.getMemberID());
         ls.add(l2.getMemberID());

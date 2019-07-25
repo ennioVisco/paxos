@@ -6,9 +6,15 @@ import Messages.*;
 import javafx.util.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
+/**
+ * This is the main class that collects legislators actions and knowledge.
+ * Most actions are triggered on receive of a message from other legislators.
+ * Any legislator is bound to a Chamber.
+ */
 public class Legislator {
     private static final Logger LOGGER = LogManager.getLogger();
 
@@ -18,132 +24,203 @@ public class Legislator {
     private List<Decree> decrees;
     private UUID memberID;
 
-
     private Ledger ledger;
-
-    private Set<Ballot> pendingBallots;
-    private Set<Vote> lastVotesBallot;
-
 
     private Set<UUID> quorum;
     private Ballot currentBallot;
-    private int ballotID;
 
-    //Unique ballot numbers as <ballotID, legislatorID>
-
-    public Legislator(Chamber chamber, MajorityStrategy majorityRule) {
+    public Legislator(@NotNull Chamber chamber, @NotNull MajorityStrategy majorityRule) {
         this.memberID = chamber.addMember(this);
+        this.ledger = new Ledger(this);
         this.chamber = chamber;
         this.majorityRule = majorityRule;
         this.decrees = new ArrayList<>();
-        this.ledger = new Ledger();
 
         //TODO: this should adapt to leavers
         quorum = majorityRule.selectMajoritySet(chamber.getMembers());
     }
-
-    public void nextBallot() {
-        ballotID = ledger.getNewBallotId();
-        for (UUID r : quorum)
-            send(new NextBallotMessage(r, ballotID, this));
-    }
-
-    private void lastVote(UUID r, Integer bound) {
-        Vote v = ledger.getLastVote(bound);
-        Pair<Integer, Vote> message = new Pair<>(bound, v);
-        ledger.addVoteMessage(new LastVoteMessage(r, message, this));
-        send(new LastVoteMessage(r, message, this));
-    }
-
-    //called on receive of LastVote()
-    private void processLastVote(UUID s, Vote v, Integer b) {
-        if (quorum.contains(s) && !lastVotesBallot.contains(v))
-            lastVotesBallot.add(v);
-        if (lastVotesBallot.size() == quorum.size())
-            beginBallot(b);
-    }
-
-    //TODO: should be able to choose not to vote
-    private void vote(UUID r, Ballot b) {
-        Vote v = new Vote(this, b, b.getDecree());
-        send(new VotedMessage(r, v, this));
-    }
-
-    private void processVote(Vote v) {
-        currentBallot.addVote(v);
-        if(currentBallot.getVotes().size() == currentBallot.getQuorum().size()){
-            sendAll(new SuccessMessage(currentBallot, this));
-            currentBallot = null;
-        }
-    }
-
-    private void updateLedger(Ballot b) {
-        ledger.addApprovedBallot(b);
-    }
-
-    private void beginBallot(Integer b) {
-        Decree d = chooseDecree();
-        currentBallot = new Ballot(b, d, quorum);
-
-        for(UUID l : quorum) {
-            send(new BeginBallotMessage(l, currentBallot, this));
-        }
-    }
-
-    private Decree chooseDecree() {
-        //TODO: verify to satisfy B3
-        Decree decree = maxVoteDecree();
-        if(decree == BasicDecrees.BLANK_DECREE)
-            return decrees.get(1);
-        return decree;
-    }
-
-    private Decree maxVoteDecree() {
-        Vote maxVote = Vote.NullVote(this);
-        for(Vote v : lastVotesBallot) {
-            if(v.getBallot().getBallotID() > maxVote.getBallot().getBallotID())
-                maxVote = v;
-        }
-        return maxVote.getDecree();
-    }
-
-    public void receive(Message m) {
-        if(m instanceof NextBallotMessage) {
-            NextBallotMessage nb = (NextBallotMessage) m;
-            lastVote(nb.getRecipient(), nb.getBallot());
-        } else if (m instanceof LastVoteMessage) {
-            LastVoteMessage lv = (LastVoteMessage) m;
-            processLastVote(lv.getRecipient(), lv.getVote(), lv.getBound());
-        } else if (m instanceof BeginBallotMessage) {
-            BeginBallotMessage bb = (BeginBallotMessage) m;
-            vote(bb.getRecipient(), bb.getBallot());
-        } else if (m instanceof VotedMessage) {
-            VotedMessage vm = (VotedMessage) m;
-            processVote(vm.getVote());
-        } else if (m instanceof SuccessMessage) {
-            SuccessMessage sm = (SuccessMessage) m;
-            updateLedger(sm.getBallot());
-        }
-    }
-
     public Legislator(Chamber chamber) {
         this(chamber, new RandomMajority());
     }
-
-    public void send(Message m) {
-        chamber.dispatch(m);
-    }
-
-    public void sendAll(Message m) {
-        chamber.broadcast(m);
-    }
-
     public Legislator() {
         this(new Chamber());
     }
 
+    /**
+     * Dispatching strategy for messages received.
+     * @param m new message received
+     */
+    public Message receive(Message m) throws UnknownMessageException {
+        if(m instanceof NextBallotMessage) {
+            NextBallotMessage nb = (NextBallotMessage) m;
+            return lastVote(nb.getRecipient(), nb.getBallot());
+        } else if (m instanceof LastVoteMessage) {
+            LastVoteMessage lv = (LastVoteMessage) m;
+            return processLastVote(lv.getRecipient(), lv.getVote(), lv.getBound());
+        } else if (m instanceof BeginBallotMessage) {
+            BeginBallotMessage bb = (BeginBallotMessage) m;
+            return vote(bb.getRecipient(), bb.getBallot());
+        } else if (m instanceof VotedMessage) {
+            VotedMessage vm = (VotedMessage) m;
+            return processVote(vm.getVote());
+        } else if (m instanceof SuccessMessage) {
+            SuccessMessage sm = (SuccessMessage) m;
+            return updateLedger(sm.getBallot());
+        }
+        throw new UnknownMessageException(m);
+    }
+
+    /**
+     * Chamber wrapper for sending a 1-to-1 message.
+     * @param m message to be sent
+     */
+    public void send(Message m) {
+        chamber.dispatch(m);
+    }
+
+    /**
+     * Chamber wrapper for sending a 1-to-all message.
+     * @param m message to be sent.
+     */
+    public void sendAll(Message m) {
+        chamber.broadcast(m);
+    }
+
+    /**
+     * Entry point to start a new ballot.
+     * Algorithm step 1.
+     * @return the tentative new ballot ID.
+     */
+    public int nextBallot() {
+        int ballotID = ledger.getNewBallotId();
+        ledger.emptyLastVotesReceived();
+        for (UUID r : quorum)
+            send(new NextBallotMessage(r, ballotID, this));
+        return ballotID;
+    }
+
+    /**
+     * Activated on receiving a NextBallot message.
+     * Sends a LastVote message.
+     * Algorithm step 2.
+     * @param r Ballot requester ID.
+     * @param bound Tentative ballot ID to be checked.
+     * @return the LastVote message sent.
+     */
+
+    private Message lastVote(UUID r, Integer bound) {
+        Vote v = ledger.getLastVote(bound);
+        Pair<Integer, Vote> message = new Pair<>(bound, v);
+        ledger.addVoteMessage(new LastVoteMessage(r, message, this));
+        Message m = new LastVoteMessage(r, message, this);
+        send(m);
+        return m;
+    }
+
+    /**
+     * Activated on receiving a LastVote message.
+     * If everybody replied, starts a new ballot and sends a BeginBallot message.
+     * Algorithm step 3.
+     * @param s ID of the sender.
+     * @param v The last vote the sender expressed, satisfying the requested condition.
+     * @param b The ballot ID previously requested to satisfy.
+     * @return the BeginBallot message sent or null.
+     */
+    private Message processLastVote(UUID s, Vote v, Integer b) {
+        Set<Vote> lvr = ledger.getLastVotesReceived();
+        if (quorum.contains(s) && !lvr.contains(v))
+            ledger.addLastVoteReceived(v);
+        if (lvr.size() == quorum.size())
+            return beginBallot(b);
+        return null;
+    }
+
+    /**
+     * Activated on receiving a BeginBallot message.
+     * At this stage, we decide whether to vote.
+     * If we want to, a Voted message is sent.
+     * Algorithm step 4.
+     * @param r ID of the legislator to reply to in case of vote.
+     * @param b The proposed ballot.
+     * @return the Voted message sent.
+     */
+    private Message vote(UUID r, Ballot b) {
+        //TODO: should be able to choose not to vote
+        Vote v = new Vote(this, b, b.getDecree());
+        Message m = new VotedMessage(r, v, this);
+        send(m);
+        return m;
+    }
+
+    /**
+     * Activated on receiving a Voted message.
+     * If everyone in the quorum has voted, a Success message is broadcasted.
+     * Algorithm step 5.
+     * @param v Vote received from an agreeing legislator.
+     * @return the Success message sent or null.
+     */
+    private Message processVote(Vote v) {
+        currentBallot.addVote(v);
+        if(currentBallot.getVotes().size() == currentBallot.getQuorum().size()){
+            Message m = new SuccessMessage(currentBallot, this);
+            sendAll(m);
+            currentBallot = null;
+            return m;
+        }
+        return null;
+    }
+
+    /**
+     * Activated on receiving a Success message.
+     * It updates the ledger with the new decree that has now become law.
+     * Algorithm step 6.
+     * @param b The successful ballot.
+     * @return a copy of the Success message received.
+     */
+    private Message updateLedger(Ballot b) {
+        if(!decrees.isEmpty())
+            if(b.getDecree() == decrees.get(1))
+                decrees.remove(1);
+        ledger.addApprovedBallot(b);
+        return new SuccessMessage(b, memberID);
+    }
+
+    /*INTERNAL METHODS*/
+
+    private Message beginBallot(Integer b) {
+        Decree d = chooseDecree();
+        currentBallot = new Ballot(b, d, quorum);
+        Message m = null;
+        for(UUID l : quorum) {
+            m = new BeginBallotMessage(l, currentBallot, this);
+            send(m);
+        }
+        return m;
+    }
+
+    private Decree chooseDecree() {
+        //TODO: verify to satisfy B3
+        Vote maxVote = Vote.NullVote(this);
+        for(Vote v : ledger.getLastVotesReceived()) {
+            if(v.getBallot().getBallotID() > maxVote.getBallot().getBallotID())
+                maxVote = v;
+        }
+
+        if(maxVote.getDecree() == BasicDecrees.BLANK_DECREE && !decrees.isEmpty())
+            return decrees.get(1);
+        else if (maxVote.getDecree() == BasicDecrees.BLANK_DECREE)
+            return BasicDecrees.TRIVIAL_DECREE;
+        return maxVote.getDecree();
+    }
+
     public UUID getMemberID() {
         return memberID;
+    }
+
+    /* END OF INTERNAL METHODS */
+
+    public Ledger getLedger() {
+        return ledger;
     }
 
     public void requestDecree(Decree d) {
