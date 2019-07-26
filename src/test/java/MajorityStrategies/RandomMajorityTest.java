@@ -1,3 +1,5 @@
+package MajorityStrategies;
+
 import Base.Chamber;
 import Base.Legislator;
 import MajorityStrategies.MajorityStrategy;

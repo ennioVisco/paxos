@@ -24,18 +24,19 @@ class LedgerTest {
         ledger.addVote(v);
     }
 
-    @Test
-    void getLastVote() {
-        Vote lv = ledger.getLastVote(20);
+    /*@Test
+    void gettLasVote() {
+        Vote lv = ledger.getPreviousVote(20);
         assertEquals(10, lv.getBallot().getBallotID());
-        lv = ledger.getLastVote(5);
+        lv = ledger.getPreviousVote(5);
         assertEquals(-1, lv.getBallot().getBallotID());
-    }
+    }*/
 
     @Test
     void getNewBallotId() {
+        //TODO: verify this is right
         Integer max = ledger.getNewBallotId();
-        for(Integer bid: ledger.getPreviousVotes().keySet())
-            assertTrue(max > bid);
+        Integer prev = ledger.getPreviousVote().getBallot().getBallotID();
+        assertTrue(max > prev);
     }
 }

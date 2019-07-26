@@ -13,21 +13,32 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class LegislatorTest {
     private Legislator l;
-    int ballotID = 1;
+    int ballotID;
 
     @BeforeEach
     void setUp() {
         l = new Legislator();
+        ballotID = 0;
     }
 
     /**
-     * Test for Step 1
+     * Test for Step 1 - Base case
      */
     @Test
-    void nextBallot() {
+    void nextBallot_0() {
         int b = l.nextBallot();
         assertEquals(ballotID, b);
-        //TODO: test more complex cases
+    }
+
+    /**
+     * Test for Step 1 - Any other case
+     */
+    @Test
+    void nextBallot_Any() {
+        l.nextBallot();
+        l.nextBallot();
+        int b = l.nextBallot();
+        assertEquals(b, l.getLedger().getLastTriedBallot());
     }
 
     /**
@@ -55,6 +66,7 @@ class LegislatorTest {
         Vote v = Vote.NullVote(l);
         Pair<Integer, Vote> c = new Pair<>(ballotID, v);
         Message m = new LastVoteMessage(l.getMemberID(), c, l.getMemberID());
+        l.nextBallot(); //Increment lastTriedBallot to simulate previous NextBallot message
         //TODO: test more complex cases
         try {
             BeginBallotMessage bb = (BeginBallotMessage) l.receive(m);
@@ -75,6 +87,7 @@ class LegislatorTest {
         q.add(l.getMemberID());
         Ballot b = new Ballot(1, d, q);
         Message m = new BeginBallotMessage(l.getMemberID(),b,l);
+        l.getLedger().setNextBallot(b.getBallotID());
         try {
             VotedMessage v = (VotedMessage) l.receive(m);
             assertEquals(d, v.getVote().getDecree());

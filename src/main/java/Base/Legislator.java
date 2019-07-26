@@ -56,7 +56,7 @@ public class Legislator {
             return lastVote(nb.getRecipient(), nb.getBallot());
         } else if (m instanceof LastVoteMessage) {
             LastVoteMessage lv = (LastVoteMessage) m;
-            return processLastVote(lv.getRecipient(), lv.getVote(), lv.getBound());
+            return processLastVote(lv.getRecipient(), lv.getBound(), lv.getVote());
         } else if (m instanceof BeginBallotMessage) {
             BeginBallotMessage bb = (BeginBallotMessage) m;
             return vote(bb.getRecipient(), bb.getBallot());
@@ -107,14 +107,16 @@ public class Legislator {
      * @param bound Tentative ballot ID to be checked.
      * @return the LastVote message sent.
      */
-
     private Message lastVote(UUID r, Integer bound) {
-        Vote v = ledger.getLastVote(bound);
-        Pair<Integer, Vote> message = new Pair<>(bound, v);
-        ledger.addVoteMessage(new LastVoteMessage(r, message, this));
-        Message m = new LastVoteMessage(r, message, this);
-        send(m);
-        return m;
+        if(bound > ledger.getNextBallotID()) {
+            ledger.setNextBallot(bound);
+            Pair<Integer, Vote> message = new Pair<>(bound, ledger.getPreviousVote());
+            Message m = new LastVoteMessage(r, message, this);
+            send(m);
+            return m;
+        }
+        LOGGER.info("Ignoring the NextBallot just received with Bound:" + bound);
+        return null;
     }
 
     /**
@@ -122,16 +124,20 @@ public class Legislator {
      * If everybody replied, starts a new ballot and sends a BeginBallot message.
      * Algorithm step 3.
      * @param s ID of the sender.
-     * @param v The last vote the sender expressed, satisfying the requested condition.
      * @param b The ballot ID previously requested to satisfy.
+     * @param v The last vote the sender expressed, satisfying the requested condition.
      * @return the BeginBallot message sent or null.
      */
-    private Message processLastVote(UUID s, Vote v, Integer b) {
-        Set<Vote> lvr = ledger.getLastVotesReceived();
-        if (quorum.contains(s) && !lvr.contains(v))
-            ledger.addLastVoteReceived(v);
-        if (lvr.size() == quorum.size())
-            return beginBallot(b);
+    private Message processLastVote(UUID s, Integer b, Vote v) {
+        if(b == ledger.getLastTriedBallot()) {
+            Set<Vote> lvr = ledger.getLastVotesReceived();
+            if (quorum.contains(s) && !lvr.contains(v))
+                ledger.addLastVoteReceived(v);
+            if (lvr.size() == quorum.size())
+                return beginBallot(b);
+        }
+        LOGGER.info("Ignoring the LastVoteMessage just received with <Bound,Vote>:" +
+                    "<" + b + "," + v.toString() + ">");
         return null;
     }
 
@@ -146,10 +152,15 @@ public class Legislator {
      */
     private Message vote(UUID r, Ballot b) {
         //TODO: should be able to choose not to vote
-        Vote v = new Vote(this, b, b.getDecree());
-        Message m = new VotedMessage(r, v, this);
-        send(m);
-        return m;
+        if(b.getBallotID() == ledger.getNextBallotID()) {
+            Vote v = new Vote(this, b, b.getDecree());
+            ledger.addVote(v);
+            Message m = new VotedMessage(r, v, this);
+            send(m);
+            return m;
+        }
+        LOGGER.info("Ignoring the LastVoteMessage just received with Ballot:" + b.toString());
+        return null;
     }
 
     /**
@@ -160,13 +171,16 @@ public class Legislator {
      * @return the Success message sent or null.
      */
     private Message processVote(Vote v) {
-        currentBallot.addVote(v);
-        if(currentBallot.getVotes().size() == currentBallot.getQuorum().size()){
-            Message m = new SuccessMessage(currentBallot, this);
-            sendAll(m);
-            currentBallot = null;
-            return m;
+        if(v.getBallot().getBallotID() == ledger.getLastTriedBallot()) {
+            currentBallot.addVote(v);
+            if (currentBallot.getVotes().size() == currentBallot.getQuorum().size()) {
+                Message m = new SuccessMessage(currentBallot, this);
+                sendAll(m);
+                currentBallot = null;
+                return m;
+            }
         }
+        LOGGER.info("Ignoring the Voted message just received with Vote:" + v.toString());
         return null;
     }
 
@@ -213,11 +227,11 @@ public class Legislator {
         return maxVote.getDecree();
     }
 
+    /* END OF INTERNAL METHODS */
+
     public UUID getMemberID() {
         return memberID;
     }
-
-    /* END OF INTERNAL METHODS */
 
     public Ledger getLedger() {
         return ledger;

@@ -9,49 +9,72 @@ import java.util.*;
  * Related to previous approved decrees, to previous votes and previous messages sent.
  */
 class Ledger {
-    private Legislator legislator;
-    private Map<Integer,Vote> previousVotes;
-    private Set<LastVoteMessage> lastVotesSent;
+    private List<Ballot> approvedBallots;
     private Set<Vote> lastVotesReceived;
 
-    private List<Ballot> approvedBallots;
+    private Integer lastTriedBallot;
+    private Vote previousVote;
+    private Integer nextBallotID;
+
+    //private Map<Integer,Vote> previousVotes;
+    //private Set<LastVoteMessage> lastVotesSent;
 
     Ledger(Legislator legislator) {
         approvedBallots = new ArrayList<>();
         lastVotesReceived = new HashSet<>();
-        previousVotes = new HashMap<>();
-        lastVotesSent = new HashSet<>();
-        this.legislator = legislator;
+
+        previousVote = Vote.NullVote(legislator);
+        lastTriedBallot = -1;
+        nextBallotID = -1;
     }
 
-    Vote getLastVote(Integer max) {
-        Vote bind = Vote.NullVote(legislator);
+    Vote getPreviousVote() {
+        return previousVote;
+        /*Vote bind = Vote.NullVote(legislator);
         for(Integer b: previousVotes.keySet()){
             if(b < max && bind.getBallot().getBallotID() < b) {
                 bind = previousVotes.get(b);
             }
         }
-        return bind;
+        return bind;*/
     }
 
-    public Set<Vote> getLastVotesReceived() {
+    /**
+     * LastVotes are messages containing the last vote a Legislator in the quorum had previously expressed.
+     * LastVotes are used by Legislators to decide whether to start the Ballot or not.
+     */
+    Set<Vote> getLastVotesReceived() {
         return lastVotesReceived;
     }
 
-    public void addLastVoteReceived(Vote vote) {
+    /**
+     * LastVotes are messages containing the last vote a Legislator in the quorum had previously expressed.
+     * When a new LastVote is received, its content is noted on the back of the ledger.
+     * @param vote
+     */
+    void addLastVoteReceived(Vote vote) {
         lastVotesReceived.add(vote);
     }
 
-    public void emptyLastVotesReceived() {
+    /**
+     * LastVotes are messages containing the last vote a Legislator in the quorum had previously expressed.
+     * When a ballot starts, the starting legislator clears the back of his ledger to prepare for incoming
+     * messages.
+     */
+    void emptyLastVotesReceived() {
         lastVotesReceived.clear();
     }
 
-    public Map<Integer, Vote> getPreviousVotes() {
-        return previousVotes;
-    }
-
+    /**
+     * Method for updating the last vote expressed.
+     * @param vote the new vote to be added, if newer
+     */
     void addVote(Vote vote) {
-        previousVotes.put(vote.getBallot().getBallotID(),vote);
+        //TODO: verify this is right (step 4)
+        Ballot previous = previousVote.getBallot();
+        Ballot current = vote.getBallot();
+        if(current.getBallotID() < previous.getBallotID())
+            previousVote = vote;
     }
 
     /**
@@ -71,14 +94,25 @@ class Ledger {
         approvedBallots.add(ballot);
     }
 
-    void addVoteMessage(LastVoteMessage message) {
-        lastVotesSent.add(message);
+    /**
+     * Used to record the ballot corresponding to the LastVote expressed.
+     * @param bid Bound for the Ballot ID.
+     */
+    void setNextBallot(Integer bid) {
+        nextBallotID = bid;
+    }
+
+    Integer getLastTriedBallot() {
+        return lastTriedBallot;
+    }
+
+    Integer getNextBallotID() {
+        return nextBallotID;
     }
 
     Integer getNewBallotId() {
         //TODO: must satisfy B1 rule
-        if(!previousVotes.keySet().isEmpty())
-            return Collections.max(previousVotes.keySet())  + 1;
-        return 1;
+        lastTriedBallot++;
+        return lastTriedBallot;
     }
 }
