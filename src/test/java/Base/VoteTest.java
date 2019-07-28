@@ -9,6 +9,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
+import java.util.concurrent.LinkedTransferQueue;
 
 class VoteTest {
 
@@ -17,8 +18,9 @@ class VoteTest {
 
     @BeforeEach
     void setUp() {
-        l1 = new Legislator();
-        l2 = new Legislator();
+        Chamber chamber = new Chamber(new LinkedTransferQueue<>());
+        l1 = new Legislator(chamber);
+        l2 = new Legislator(chamber);
     }
 
     @Test

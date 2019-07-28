@@ -2,8 +2,6 @@ package MajorityStrategies;
 
 import Base.Chamber;
 import Base.Legislator;
-import MajorityStrategies.MajorityStrategy;
-import MajorityStrategies.RandomMajority;
 import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -11,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.LinkedTransferQueue;
 
 class RandomMajorityTest {
 
@@ -18,7 +17,7 @@ class RandomMajorityTest {
 
     @BeforeEach
     void setUp() {
-        Chamber c = new Chamber();
+        Chamber c = new Chamber(new LinkedTransferQueue<>());
         Legislator l1 = new Legislator(c);
         Legislator l2 = new Legislator(c);
         Legislator l3 = new Legislator(c);

@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
 import java.util.UUID;
+import java.util.concurrent.LinkedTransferQueue;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -23,9 +24,10 @@ class BallotTest {
 
     @BeforeEach
     void setUp() {
-        l1 = new Legislator();
-        l2 = new Legislator();
-        l3 = new Legislator();
+        Chamber chamber = new Chamber(new LinkedTransferQueue<>());
+        l1 = new Legislator(chamber);
+        l2 = new Legislator(chamber);
+        l3 = new Legislator(chamber);
         ls = new HashSet<>();
         ls.add(l1.getMemberID());
         ls.add(l2.getMemberID());

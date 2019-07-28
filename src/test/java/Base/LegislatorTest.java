@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.LinkedTransferQueue;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -17,7 +18,8 @@ class LegislatorTest {
 
     @BeforeEach
     void setUp() {
-        l = new Legislator();
+        Chamber chamber = new Chamber(new LinkedTransferQueue<>());
+        l = new Legislator(chamber);
         ballotID = 0;
     }
 

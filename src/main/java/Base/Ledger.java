@@ -8,16 +8,13 @@ import java.util.*;
  * They collect some data (it varies depending on the version of the protocol)
  * Related to previous approved decrees, to previous votes and previous messages sent.
  */
-class Ledger {
+public class Ledger {
     private List<Ballot> approvedBallots;
     private Set<Vote> lastVotesReceived;
 
     private Integer lastTriedBallot;
     private Vote previousVote;
     private Integer nextBallotID;
-
-    //private Map<Integer,Vote> previousVotes;
-    //private Set<LastVoteMessage> lastVotesSent;
 
     Ledger(Legislator legislator) {
         approvedBallots = new ArrayList<>();
@@ -26,17 +23,6 @@ class Ledger {
         previousVote = Vote.NullVote(legislator);
         lastTriedBallot = -1;
         nextBallotID = -1;
-    }
-
-    Vote getPreviousVote() {
-        return previousVote;
-        /*Vote bind = Vote.NullVote(legislator);
-        for(Integer b: previousVotes.keySet()){
-            if(b < max && bind.getBallot().getBallotID() < b) {
-                bind = previousVotes.get(b);
-            }
-        }
-        return bind;*/
     }
 
     /**
@@ -50,7 +36,7 @@ class Ledger {
     /**
      * LastVotes are messages containing the last vote a Legislator in the quorum had previously expressed.
      * When a new LastVote is received, its content is noted on the back of the ledger.
-     * @param vote
+     * @param vote the lastVote received corresponding to the requested bound
      */
     void addLastVoteReceived(Vote vote) {
         lastVotesReceived.add(vote);
@@ -69,12 +55,16 @@ class Ledger {
      * Method for updating the last vote expressed.
      * @param vote the new vote to be added, if newer
      */
-    void addVote(Vote vote) {
+    void addPreviousVote(Vote vote) {
         //TODO: verify this is right (step 4)
         Ballot previous = previousVote.getBallot();
         Ballot current = vote.getBallot();
         if(current.getBallotID() < previous.getBallotID())
             previousVote = vote;
+    }
+
+    Vote getPreviousVote() {
+        return previousVote;
     }
 
     /**
@@ -102,11 +92,11 @@ class Ledger {
         nextBallotID = bid;
     }
 
-    Integer getLastTriedBallot() {
+    public Integer getLastTriedBallot() {
         return lastTriedBallot;
     }
 
-    Integer getNextBallotID() {
+    public Integer getNextBallotID() {
         return nextBallotID;
     }
 

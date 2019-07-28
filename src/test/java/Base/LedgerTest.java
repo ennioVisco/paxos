@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.LinkedTransferQueue;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -15,13 +16,14 @@ class LedgerTest {
 
     @BeforeEach
     void setUp() {
-        Legislator l = new Legislator();
+        Chamber chamber = new Chamber(new LinkedTransferQueue<>());
+        Legislator l = new Legislator(chamber);
         ledger = new Ledger(l);
         Set<UUID> ls = new HashSet<>();
         ls.add(l.getMemberID());
         Ballot b = new Ballot(10, BasicDecrees.TRIVIAL_DECREE, ls);
         Vote v = new Vote (l, b, BasicDecrees.TRIVIAL_DECREE);
-        ledger.addVote(v);
+        ledger.addPreviousVote(v);
     }
 
     /*@Test

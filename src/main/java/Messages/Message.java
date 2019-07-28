@@ -1,8 +1,9 @@
 package Messages;
 
+import java.io.Serializable;
 import java.util.UUID;
 
-public interface Message {
+public interface Message extends Serializable {
 
     UUID getSender();
 

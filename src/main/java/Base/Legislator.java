@@ -1,7 +1,5 @@
 package Base;
 
-import MajorityStrategies.MajorityStrategy;
-import MajorityStrategies.RandomMajority;
 import Messages.*;
 import javafx.util.Pair;
 import org.apache.logging.log4j.LogManager;
@@ -20,7 +18,6 @@ public class Legislator {
 
     // External interfaces
     private Chamber chamber;
-    private MajorityStrategy majorityRule;
     private List<Decree> decrees;
     private UUID memberID;
 
@@ -29,21 +26,14 @@ public class Legislator {
     private Set<UUID> quorum;
     private Ballot currentBallot;
 
-    public Legislator(@NotNull Chamber chamber, @NotNull MajorityStrategy majorityRule) {
-        this.memberID = chamber.addMember(this);
+    public Legislator(@NotNull Chamber chamber) {
+        this.memberID = chamber.join(this);
         this.ledger = new Ledger(this);
         this.chamber = chamber;
-        this.majorityRule = majorityRule;
         this.decrees = new ArrayList<>();
 
         //TODO: this should adapt to leavers
-        quorum = majorityRule.selectMajoritySet(chamber.getMembers());
-    }
-    public Legislator(Chamber chamber) {
-        this(chamber, new RandomMajority());
-    }
-    public Legislator() {
-        this(new Chamber());
+        quorum = Settings.majority.selectMajoritySet(chamber.getMembers().keySet());
     }
 
     /**
@@ -53,13 +43,13 @@ public class Legislator {
     public Message receive(Message m) throws UnknownMessageException {
         if(m instanceof NextBallotMessage) {
             NextBallotMessage nb = (NextBallotMessage) m;
-            return lastVote(nb.getRecipient(), nb.getBallot());
+            return lastVote(nb.getSender(), nb.getBallot());
         } else if (m instanceof LastVoteMessage) {
             LastVoteMessage lv = (LastVoteMessage) m;
-            return processLastVote(lv.getRecipient(), lv.getBound(), lv.getVote());
+            return processLastVote(lv.getSender(), lv.getBound(), lv.getVote());
         } else if (m instanceof BeginBallotMessage) {
             BeginBallotMessage bb = (BeginBallotMessage) m;
-            return vote(bb.getRecipient(), bb.getBallot());
+            return vote(bb.getSender(), bb.getBallot());
         } else if (m instanceof VotedMessage) {
             VotedMessage vm = (VotedMessage) m;
             return processVote(vm.getVote());
@@ -108,15 +98,15 @@ public class Legislator {
      * @return the LastVote message sent.
      */
     private Message lastVote(UUID r, Integer bound) {
-        if(bound > ledger.getNextBallotID()) {
+        if(bound > ledger.getNextBallotID())
             ledger.setNextBallot(bound);
-            Pair<Integer, Vote> message = new Pair<>(bound, ledger.getPreviousVote());
-            Message m = new LastVoteMessage(r, message, this);
-            send(m);
-            return m;
-        }
-        LOGGER.info("Ignoring the NextBallot just received with Bound:" + bound);
-        return null;
+        else
+            bound = ledger.getNextBallotID();
+
+        Pair<Integer, Vote> message = new Pair<>(bound, ledger.getPreviousVote());
+        Message m = new LastVoteMessage(r, message, this);
+        send(m);
+        return m;
     }
 
     /**
@@ -129,12 +119,16 @@ public class Legislator {
      * @return the BeginBallot message sent or null.
      */
     private Message processLastVote(UUID s, Integer b, Vote v) {
-        if(b == ledger.getLastTriedBallot()) {
+        if(ledger.getLastTriedBallot().equals(b)) {
             Set<Vote> lvr = ledger.getLastVotesReceived();
             if (quorum.contains(s) && !lvr.contains(v))
                 ledger.addLastVoteReceived(v);
             if (lvr.size() == quorum.size())
                 return beginBallot(b);
+        } else if(b > ledger.getLastTriedBallot()) {
+            ledger.setNextBallot(b);
+            nextBallot();
+            return null;
         }
         LOGGER.info("Ignoring the LastVoteMessage just received with <Bound,Vote>:" +
                     "<" + b + "," + v.toString() + ">");
@@ -148,19 +142,18 @@ public class Legislator {
      * Algorithm step 4.
      * @param r ID of the legislator to reply to in case of vote.
      * @param b The proposed ballot.
-     * @return the Voted message sent.
+     * @return the Voted message sent or a LastVote message in case the ballot ID is less than nextBallotID.
      */
     private Message vote(UUID r, Ballot b) {
         //TODO: should be able to choose not to vote
-        if(b.getBallotID() == ledger.getNextBallotID()) {
+        if(b.getBallotID() >= ledger.getNextBallotID()) {
             Vote v = new Vote(this, b, b.getDecree());
-            ledger.addVote(v);
+            ledger.addPreviousVote(v);
             Message m = new VotedMessage(r, v, this);
             send(m);
             return m;
         }
-        LOGGER.info("Ignoring the LastVoteMessage just received with Ballot:" + b.toString());
-        return null;
+        return lastVote(r, b.getBallotID());
     }
 
     /**
