@@ -31,7 +31,8 @@ class BallotTest {
         ls = new HashSet<>();
         ls.add(l1.getMemberID());
         ls.add(l2.getMemberID());
-        b = new Ballot(1, BasicDecrees.TRIVIAL_DECREE, ls);
+        BallotID bid = new BallotID(1,l1.getMemberID());
+        b = new Ballot(bid, BasicDecrees.TRIVIAL_DECREE, ls);
     }
 
     @Test
@@ -54,7 +55,8 @@ class BallotTest {
 
     @Test
     void compareTo() {
-        Ballot b2 = new Ballot(5,BasicDecrees.TRIVIAL_DECREE, ls);
+        BallotID bid = new BallotID(5,l1.getMemberID());
+        Ballot b2 = new Ballot(bid,BasicDecrees.TRIVIAL_DECREE, ls);
         Assert.assertTrue(b.compareTo(b2) < 0);
     }
 

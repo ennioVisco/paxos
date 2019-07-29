@@ -1,5 +1,6 @@
 package Messages;
 
+import Base.BallotID;
 import Base.Legislator;
 import Base.Vote;
 import javafx.util.Pair;
@@ -11,16 +12,16 @@ public class LastVoteMessage implements Message{
     private UUID recipient;
 
     private final Vote vote;
-    private final Integer bound;
+    private final BallotID bound;
 
-    public LastVoteMessage(UUID recipient, Pair<Integer,Vote> message, UUID sender) {
+    public LastVoteMessage(UUID recipient, Pair<BallotID,Vote> message, UUID sender) {
         this.recipient = recipient;
         this.bound = message.getKey();
         this.vote = message.getValue();
         this.sender = sender;
     }
 
-    public LastVoteMessage(UUID recipient, Pair<Integer,Vote> message, Legislator sender) {
+    public LastVoteMessage(UUID recipient, Pair<BallotID,Vote> message, Legislator sender) {
         this(recipient, message, sender.getMemberID());
     }
 
@@ -28,7 +29,7 @@ public class LastVoteMessage implements Message{
         return vote;
     }
 
-    public Integer getBound() {
+    public BallotID getBound() {
         return bound;
     }
 

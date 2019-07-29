@@ -17,13 +17,13 @@ import java.util.UUID;
 public class Ballot implements Comparable<Ballot> {
     //TODO: Probably 'Character' (i.e. positive integers) is better than Integer to exploit all the numbers,
     // after all a bijection can easily be defined between Integers and positive numbers.
-    private final Integer ballotID;
+    private final BallotID ballotID;
     private final Decree decree;
     private final Set<UUID> quorum;
     private Set<Vote> votes;
 
     @Contract(pure = true)
-    public Ballot(int ballotID, Decree decree, Set<UUID> quorum) {
+    public Ballot(BallotID ballotID, Decree decree, Set<UUID> quorum) {
         this.ballotID = ballotID;
         this.decree = decree;
         this.quorum = quorum;
@@ -47,10 +47,10 @@ public class Ballot implements Comparable<Ballot> {
 
     @Override
     public int compareTo(@NotNull Ballot b) {
-        return (ballotID.compareTo(b.getBallotID()));
+        return ballotID.compareTo(b.getBallotID());
     }
 
-    public int getBallotID() {
+    public BallotID getBallotID() {
         return ballotID;
     }
 

@@ -19,7 +19,7 @@ class TrackerNodeTest {
             Thread t = new Thread(runnable);
             t.start();
 
-            Thread.sleep(4000);
+            Thread.sleep(6000);
             Chamber chamber = new Chamber(new LinkedTransferQueue<>());
             new Legislator(chamber);
             new Legislator(chamber);

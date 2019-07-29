@@ -1,5 +1,6 @@
 package Execution;
 
+import Base.BallotID;
 import Base.Legislator;
 import Messages.Message;
 import Messages.NextBallotMessage;
@@ -12,7 +13,7 @@ import java.util.UUID;
 
 class PeerNodeTest {
     private static final Logger LOGGER = LogManager.getLogger();
-    private int nextID = 10;
+    private BallotID nextID = new BallotID(10, UUID.randomUUID());
 
     @Test
     void run() {
@@ -28,8 +29,8 @@ class PeerNodeTest {
             peer.enqueueInput(m);
             Thread.sleep(6000);
             Legislator l = peer.getLegislator();
-            Assert.assertEquals(10, (long) l.getLedger().getNextBallotID());
-            Assert.assertEquals(0, l.nextBallot());
+            Assert.assertEquals(10, (long) l.getLedger().getNextBallotID().getKey());
+            Assert.assertEquals(0, (long) l.nextBallot().getKey());
         }
         catch(Exception e) {
             e.printStackTrace();

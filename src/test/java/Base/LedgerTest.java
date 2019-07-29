@@ -21,7 +21,8 @@ class LedgerTest {
         ledger = new Ledger(l);
         Set<UUID> ls = new HashSet<>();
         ls.add(l.getMemberID());
-        Ballot b = new Ballot(10, BasicDecrees.TRIVIAL_DECREE, ls);
+        BallotID bid = new BallotID(10,l.getMemberID());
+        Ballot b = new Ballot(bid, BasicDecrees.TRIVIAL_DECREE, ls);
         Vote v = new Vote (l, b, BasicDecrees.TRIVIAL_DECREE);
         ledger.addPreviousVote(v);
     }
@@ -37,8 +38,8 @@ class LedgerTest {
     @Test
     void getNewBallotId() {
         //TODO: verify this is right
-        Integer max = ledger.getNewBallotId();
-        Integer prev = ledger.getPreviousVote().getBallot().getBallotID();
-        assertTrue(max > prev);
+        BallotID max = ledger.getNewBallotId();
+        BallotID prev = ledger.getPreviousVote().getBallot().getBallotID();
+        assertTrue(max.compareTo(prev) > 0);
     }
 }

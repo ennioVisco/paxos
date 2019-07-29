@@ -1,5 +1,6 @@
 package Base;
 
+import javafx.util.Pair;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,7 +28,8 @@ public class Vote implements Comparable<Vote> {
     @NotNull
     @Contract(pure = true)
     public static Vote NullVote(Legislator l) {
-        Ballot ballot = new Ballot(-1, BasicDecrees.BLANK_DECREE, new HashSet<>());
+        BallotID bid = new BallotID(-1, l.getMemberID());
+        Ballot ballot = new Ballot(bid, BasicDecrees.BLANK_DECREE, new HashSet<>());
         return new Vote (l, ballot, BasicDecrees.BLANK_DECREE);
     }
 

@@ -1,6 +1,7 @@
 package Base;
 
-import Messages.LastVoteMessage;
+import javafx.util.Pair;
+
 import java.util.*;
 
 /**
@@ -12,17 +13,17 @@ public class Ledger {
     private List<Ballot> approvedBallots;
     private Set<Vote> lastVotesReceived;
 
-    private Integer lastTriedBallot;
+    private BallotID lastTriedBallot;
     private Vote previousVote;
-    private Integer nextBallotID;
+    private BallotID nextBallotID;
 
     Ledger(Legislator legislator) {
         approvedBallots = new ArrayList<>();
         lastVotesReceived = new HashSet<>();
 
         previousVote = Vote.NullVote(legislator);
-        lastTriedBallot = -1;
-        nextBallotID = -1;
+        lastTriedBallot = new BallotID(-1, legislator.getMemberID());
+        nextBallotID = new BallotID(-1, legislator.getMemberID());
     }
 
     /**
@@ -59,7 +60,7 @@ public class Ledger {
         //TODO: verify this is right (step 4)
         Ballot previous = previousVote.getBallot();
         Ballot current = vote.getBallot();
-        if(current.getBallotID() < previous.getBallotID())
+        if(current.compareTo(previous) < 0)
             previousVote = vote;
     }
 
@@ -88,21 +89,20 @@ public class Ledger {
      * Used to record the ballot corresponding to the LastVote expressed.
      * @param bid Bound for the Ballot ID.
      */
-    void setNextBallot(Integer bid) {
+    void setNextBallot(BallotID bid) {
         nextBallotID = bid;
     }
 
-    public Integer getLastTriedBallot() {
+    public BallotID getLastTriedBallot() {
         return lastTriedBallot;
     }
 
-    public Integer getNextBallotID() {
+    public BallotID getNextBallotID() {
         return nextBallotID;
     }
 
-    Integer getNewBallotId() {
-        //TODO: must satisfy B1 rule
-        lastTriedBallot++;
+    BallotID getNewBallotId() {
+        lastTriedBallot.setKey(lastTriedBallot.getKey() + 1);
         return lastTriedBallot;
     }
 }

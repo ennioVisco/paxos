@@ -81,8 +81,8 @@ public class Legislator {
      * Algorithm step 1.
      * @return the tentative new ballot ID.
      */
-    public int nextBallot() {
-        int ballotID = ledger.getNewBallotId();
+    public BallotID nextBallot() {
+        BallotID ballotID = ledger.getNewBallotId();
         ledger.emptyLastVotesReceived();
         for (UUID r : quorum)
             send(new NextBallotMessage(r, ballotID, this));
@@ -97,13 +97,13 @@ public class Legislator {
      * @param bound Tentative ballot ID to be checked.
      * @return the LastVote message sent.
      */
-    private Message lastVote(UUID r, Integer bound) {
-        if(bound > ledger.getNextBallotID())
+    private Message lastVote(UUID r, BallotID bound) {
+        if(bound.compareTo(ledger.getNextBallotID()) > 0)
             ledger.setNextBallot(bound);
         else
             bound = ledger.getNextBallotID();
 
-        Pair<Integer, Vote> message = new Pair<>(bound, ledger.getPreviousVote());
+        Pair<BallotID, Vote> message = new Pair<>(bound, ledger.getPreviousVote());
         Message m = new LastVoteMessage(r, message, this);
         send(m);
         return m;
@@ -118,14 +118,14 @@ public class Legislator {
      * @param v The last vote the sender expressed, satisfying the requested condition.
      * @return the BeginBallot message sent or null.
      */
-    private Message processLastVote(UUID s, Integer b, Vote v) {
+    private Message processLastVote(UUID s, BallotID b, Vote v) {
         if(ledger.getLastTriedBallot().equals(b)) {
             Set<Vote> lvr = ledger.getLastVotesReceived();
             if (quorum.contains(s) && !lvr.contains(v))
                 ledger.addLastVoteReceived(v);
             if (lvr.size() == quorum.size())
                 return beginBallot(b);
-        } else if(b > ledger.getLastTriedBallot()) {
+        } else if(b.compareTo(ledger.getLastTriedBallot()) > 0) {
             ledger.setNextBallot(b);
             nextBallot();
             return null;
@@ -146,7 +146,7 @@ public class Legislator {
      */
     private Message vote(UUID r, Ballot b) {
         //TODO: should be able to choose not to vote
-        if(b.getBallotID() >= ledger.getNextBallotID()) {
+        if(b.getBallotID().compareTo(ledger.getNextBallotID()) >= 0) {
             Vote v = new Vote(this, b, b.getDecree());
             ledger.addPreviousVote(v);
             Message m = new VotedMessage(r, v, this);
@@ -164,7 +164,7 @@ public class Legislator {
      * @return the Success message sent or null.
      */
     private Message processVote(Vote v) {
-        if(v.getBallot().getBallotID() == ledger.getLastTriedBallot()) {
+        if(v.getBallot().getBallotID().equals(ledger.getLastTriedBallot())) {
             currentBallot.addVote(v);
             if (currentBallot.getVotes().size() == currentBallot.getQuorum().size()) {
                 Message m = new SuccessMessage(currentBallot, this);
@@ -194,7 +194,7 @@ public class Legislator {
 
     /*INTERNAL METHODS*/
 
-    private Message beginBallot(Integer b) {
+    private Message beginBallot(BallotID b) {
         Decree d = chooseDecree();
         currentBallot = new Ballot(b, d, quorum);
         Message m = null;
@@ -209,7 +209,7 @@ public class Legislator {
         //TODO: verify to satisfy B3
         Vote maxVote = Vote.NullVote(this);
         for(Vote v : ledger.getLastVotesReceived()) {
-            if(v.getBallot().getBallotID() > maxVote.getBallot().getBallotID())
+            if(v.getBallot().getBallotID().compareTo(maxVote.getBallot().getBallotID()) > 0)
                 maxVote = v;
         }
 

@@ -14,13 +14,13 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class LegislatorTest {
     private Legislator l;
-    int ballotID;
+    BallotID ballotID;
 
     @BeforeEach
     void setUp() {
         Chamber chamber = new Chamber(new LinkedTransferQueue<>());
         l = new Legislator(chamber);
-        ballotID = 0;
+        ballotID = new BallotID(0, l.getMemberID());
     }
 
     /**
@@ -28,8 +28,8 @@ class LegislatorTest {
      */
     @Test
     void nextBallot_0() {
-        int b = l.nextBallot();
-        assertEquals(ballotID, b);
+        BallotID b = l.nextBallot();
+        assertEquals(ballotID.getKey(), b.getKey());
     }
 
     /**
@@ -39,7 +39,7 @@ class LegislatorTest {
     void nextBallot_Any() {
         l.nextBallot();
         l.nextBallot();
-        int b = l.nextBallot();
+        BallotID b = l.nextBallot();
         assertEquals(b, l.getLedger().getLastTriedBallot());
     }
 
@@ -48,7 +48,7 @@ class LegislatorTest {
      */
     @Test
     void lastVote() {
-        int bound = 1;
+        BallotID bound = new BallotID(1, l.getMemberID());
         Message m = new NextBallotMessage(l.getMemberID(),bound,l);
         try {
             LastVoteMessage lv = (LastVoteMessage) l.receive(m);
@@ -66,13 +66,13 @@ class LegislatorTest {
     @Test
     void processLastVote() {
         Vote v = Vote.NullVote(l);
-        Pair<Integer, Vote> c = new Pair<>(ballotID, v);
+        Pair<BallotID, Vote> c = new Pair<>(ballotID, v);
         Message m = new LastVoteMessage(l.getMemberID(), c, l.getMemberID());
         l.nextBallot(); //Increment lastTriedBallot to simulate previous NextBallot message
         //TODO: test more complex cases
         try {
             BeginBallotMessage bb = (BeginBallotMessage) l.receive(m);
-            assertEquals(ballotID, bb.getBallot().getBallotID());
+            assertTrue(ballotID.equals(bb.getBallot().getBallotID()));
             assertEquals(BasicDecrees.TRIVIAL_DECREE, bb.getBallot().getDecree());
         } catch (UnknownMessageException e) {
             e.printStackTrace();
@@ -87,7 +87,8 @@ class LegislatorTest {
         Decree d = BasicDecrees.TRIVIAL_DECREE;
         Set<UUID> q = new HashSet<>();
         q.add(l.getMemberID());
-        Ballot b = new Ballot(1, d, q);
+        BallotID i = new BallotID(1, l.getMemberID());
+        Ballot b = new Ballot(i, d, q);
         Message m = new BeginBallotMessage(l.getMemberID(),b,l);
         l.getLedger().setNextBallot(b.getBallotID());
         try {
