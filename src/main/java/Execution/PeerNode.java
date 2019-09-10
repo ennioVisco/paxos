@@ -1,6 +1,7 @@
 package Execution;
 
 import Base.Chamber;
+import Base.Decree;
 import Base.Legislator;
 import Messages.Message;
 import org.apache.logging.log4j.LogManager;
@@ -17,6 +18,8 @@ public class PeerNode {
 
     public Legislator legislator;
 
+    private volatile boolean active;
+
     public static void main(String[] args) {
         PeerNode node = new PeerNode();
         node.run();
@@ -26,6 +29,7 @@ public class PeerNode {
         // Initialize queues
         oQueue = new LinkedTransferQueue<>();
         iQueue = new LinkedTransferQueue<>();
+        active = true;
     }
 
     public void run() {
@@ -42,7 +46,7 @@ public class PeerNode {
         inputManager.start();
         outputManager.start();
 
-        while(true) {
+        while(active) {
             try {
                 Message m = iQueue.take();
                 LOGGER.info("Received a new message");
@@ -50,7 +54,20 @@ public class PeerNode {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+
+            if(!active)
+                break;
         }
+    }
+
+    public void requestDecree(Decree decree) {
+        LOGGER.info("Requesting decree:" + decree);
+        legislator.requestDecree(decree);
+    }
+
+    public void shutdown() {
+        LOGGER.info("Shutting down the peer.");
+        active = false;
     }
 
     public Legislator getLegislator() {

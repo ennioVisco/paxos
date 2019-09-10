@@ -4,6 +4,7 @@ import Base.Legislator;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class RandomMajority implements MajorityStrategy {
     @Override
@@ -13,16 +14,23 @@ public class RandomMajority implements MajorityStrategy {
 
     private Set<UUID> randomChoice(@NotNull Set<UUID> ls) {
         int size = (ls.size() / 2) + 1;
-        Set<UUID> quorum = new HashSet<>();
-        for (int i = 0; i < size; i++) {
-            quorum.add(choice(ls));
-        }
-        return quorum;
+        return new HashSet<>(pickNRandomElements(new ArrayList<>(ls),size));
     }
 
-    private <T> T choice(@NotNull Collection<T> coll) {
-        int num = (int) (Math.random() * coll.size());
-        for(T t: coll) if (--num < 0) return t;
-        throw new AssertionError();
+    private <E> List<E> pickNRandomElements(List<E> list, int n, Random r) {
+        int length = list.size();
+
+        if (length < n) return null;
+
+        //We don't need to shuffle the whole list
+        for (int i = length - 1; i >= length - n; --i)
+        {
+            Collections.swap(list, i , r.nextInt(i + 1));
+        }
+        return list.subList(length - n, length);
+    }
+
+    private <E> List<E> pickNRandomElements(List<E> list, int n) {
+        return pickNRandomElements(list, n, ThreadLocalRandom.current());
     }
 }
