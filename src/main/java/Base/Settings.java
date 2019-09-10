@@ -15,5 +15,5 @@ public class Settings {
 
     public static final MajorityStrategy majority = new RandomMajority();
 
-    public static final String TRACKER = "192.168.1.122";
+    public static final String TRACKER = "pivi.myhop.tk";
 }

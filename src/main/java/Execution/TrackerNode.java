@@ -46,7 +46,7 @@ public class TrackerNode implements Tracker {
             LOGGER.error("Tracker exception: " + e.toString());
             e.printStackTrace();
         }
-        LOGGER.info("Tracker exiting.");
+        //LOGGER.info("Tracker exiting.");
     }
 
     private void dispatch(Message message, Map.Entry<UUID, InetAddress> legislator) throws RemoteException {

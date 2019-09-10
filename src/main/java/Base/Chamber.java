@@ -32,8 +32,10 @@ public class Chamber {
         try {
             Registry registry = LocateRegistry.getRegistry(Settings.TRACKER);
             tracker = (Tracker) registry.lookup("PaxosTracker");
+            LOGGER.info("Tracker found at " + Settings.TRACKER);
         } catch(Exception e) {
             LOGGER.error("Unable to contact the tracker... simulating locally!");
+            e.getMessage();
         }
     }
 
