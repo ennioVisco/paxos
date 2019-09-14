@@ -10,7 +10,7 @@ import java.util.*;
 
 /**
  * This is the main class that collects legislators actions and knowledge.
- * Most actions are triggered on receive of a message from other legislators.
+ * Most actions are triggered on acquire of a message from other legislators.
  * Any legislator is bound to a Chamber.
  */
 public class Legislator {
@@ -26,21 +26,24 @@ public class Legislator {
     private Set<UUID> quorum;
     private Ballot currentBallot;
 
+    private boolean president;
+
     public Legislator(@NotNull Chamber chamber) {
-        this.memberID = chamber.join(this);
+        this.memberID = chamber.enter(this);
         this.ledger = new Ledger(this);
         this.chamber = chamber;
         this.decrees = new ArrayList<>();
+        this.president = false;
 
         //TODO: this should adapt to leavers
-        quorum = Settings.majority.selectMajoritySet(chamber.getMembers().keySet());
+        quorum = Settings.majority.selectMajoritySet(chamber.getMembers());
     }
 
     /**
      * Dispatching strategy for messages received.
      * @param m new message received
      */
-    public Message receive(Message m) throws UnknownMessageException {
+    public Message read(Message m) throws UnknownMessageException {
         if(m instanceof NextBallotMessage) {
             NextBallotMessage nb = (NextBallotMessage) m;
             return lastVote(nb.getSender(), nb.getBallot());
@@ -73,7 +76,7 @@ public class Legislator {
      * @param m message to be sent.
      */
     public void sendAll(Message m) {
-        chamber.broadcast(m);
+        chamber.announce(m);
     }
 
     /**
@@ -228,6 +231,10 @@ public class Legislator {
 
     public Ledger getLedger() {
         return ledger;
+    }
+
+    public boolean isPresident() {
+        return president;
     }
 
     public void requestDecree(Decree d) {

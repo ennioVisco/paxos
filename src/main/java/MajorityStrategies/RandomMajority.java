@@ -1,6 +1,5 @@
 package MajorityStrategies;
 
-import Base.Legislator;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;

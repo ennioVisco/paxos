@@ -9,9 +9,7 @@ public class Settings {
 
     public static final float PROCESSING_TIME = 500;
 
-    public static final String HOST = "192.168.1.122";
-
-    public static final int PORT = 1444;
+    public static final int PORT = 1444; //Used for UDP P2P communication
 
     public static final MajorityStrategy majority = new RandomMajority();
 

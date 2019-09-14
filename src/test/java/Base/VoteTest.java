@@ -1,11 +1,11 @@
 package Base;
 
+import Networking.PeerNode;
 import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
-import java.util.concurrent.LinkedTransferQueue;
 
 class VoteTest {
 
@@ -14,7 +14,7 @@ class VoteTest {
 
     @BeforeEach
     void setUp() {
-        Chamber chamber = new Chamber(new LinkedTransferQueue<>());
+        Chamber chamber = new Chamber(new PeerNode());
         l1 = new Legislator(chamber);
         l2 = new Legislator(chamber);
     }

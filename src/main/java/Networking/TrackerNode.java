@@ -1,13 +1,12 @@
-package Execution;
+package Networking;
 
 import Base.Settings;
+import Messages.JoinedMessage;
 import Messages.Message;
-import Networking.Peer;
-import Networking.Tracker;
 import javafx.util.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -19,7 +18,7 @@ import java.util.UUID;
 public class TrackerNode implements Tracker {
     private static final Logger LOGGER = LogManager.getLogger();
 
-    private Map<UUID, InetAddress> members;
+    private Map<UUID, InetSocketAddress> members;
 
     public TrackerNode() {
         members = new HashMap<>();
@@ -46,35 +45,35 @@ public class TrackerNode implements Tracker {
             LOGGER.error("Tracker exception: " + e.toString());
             e.printStackTrace();
         }
-        //LOGGER.info("Tracker exiting.");
     }
 
-    private void dispatch(Message message, Map.Entry<UUID, InetAddress> legislator) throws RemoteException {
+    private void dispatch(Message message, InetSocketAddress legislator) throws RemoteException {
         try {
-            Peer.send(message, legislator.getValue());
+            OutboundChannel.send(message, legislator);
         } catch(Exception e) {
-            LOGGER.error("Failed to contact " + legislator.getKey());
+            LOGGER.error("Failed to contact " + legislator);
         }
     }
 
-    public Map<UUID, InetAddress> getMembers() {
-        return members;
-    }
-
     @Override
-    public Pair <UUID, Map<UUID, InetAddress>> join(InetAddress location) throws RemoteException {
+    public Pair <UUID, Map<UUID, InetSocketAddress>> join(InetSocketAddress location) throws RemoteException {
         UUID memberID = UUID.randomUUID();
         members.put(memberID, location);
-        LOGGER.info("New peer joined: <" + memberID + "," + location.toString() + ">");
-        Pair <UUID, Map<UUID, InetAddress>> data = new Pair<>(memberID, members);
+        LOGGER.info("New peer joined: <" + memberID + "," + location + ">");
+        Pair <UUID, Map<UUID, InetSocketAddress>> data = new Pair<>(memberID, members);
+        broadcast(new JoinedMessage(memberID, members, null));
         return data;
     }
 
     @Override
     public void broadcast(Message message) throws RemoteException {
-        for(Map.Entry<UUID, InetAddress> l: members.entrySet()) {
+        for(Map.Entry<UUID, InetSocketAddress> l: members.entrySet()) {
             message.setRecipient(l.getKey());
-            dispatch(message, l);
+            dispatch(message, l.getValue());
         }
+    }
+
+    public Map<UUID, InetSocketAddress> getMembers() {
+        return members;
     }
 }

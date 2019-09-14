@@ -1,18 +1,13 @@
 package Base;
 
+import Networking.PeerNode;
 import Messages.Message;
 import Messages.UnknownMessageException;
-import Networking.Tracker;
 import javafx.util.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import java.net.InetAddress;
-import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.TransferQueue;
+
+import java.util.*;
 
 /**
  * Chambers are responsible for dispatching messages
@@ -21,68 +16,70 @@ import java.util.concurrent.TransferQueue;
 public class Chamber {
     private final Logger LOGGER = LogManager.getLogger();
 
-    private Map<UUID,InetAddress> members;
-    private Legislator localMember;
-    private Tracker tracker;
-    private TransferQueue<Message> output;
+    private Set<UUID> members;
+    private Set<Legislator> localMembers;
+    private PeerNode network;
 
-    public Chamber(TransferQueue<Message> oQueue) {
-        members = new HashMap<>();
-        output = oQueue;
-        try {
-            Registry registry = LocateRegistry.getRegistry(Settings.TRACKER);
-            tracker = (Tracker) registry.lookup("PaxosTracker");
-            LOGGER.info("Tracker found at " + Settings.TRACKER);
-        } catch(Exception e) {
-            LOGGER.error("Unable to contact the tracker... simulating locally!");
-            e.getMessage();
-        }
+    public Chamber(PeerNode peer) {
+        members = new HashSet<>();
+        network = peer;
+        localMembers = new HashSet<>();
     }
 
-    public UUID join(Legislator legislator) {
-        localMember = legislator;
-        try {
-            Pair<UUID, Map<UUID, InetAddress>> status = tracker.join(InetAddress.getLocalHost());
-            members = status.getValue();
-            return status.getKey();
-        } catch (Exception e) {
-            LOGGER.error("Unable to join the network... simulating locally!");
-            UUID id = UUID.randomUUID();
-            try {
-                members.put(id, InetAddress.getLocalHost());
-            } catch (Exception e1) {
-                LOGGER.fatal("Unable to simulate");
-            }
-            return id;
-        }
+    public UUID enter(Legislator legislator) {
+        localMembers.add(legislator);
+        Pair<UUID, Set<UUID>> p = network.join();
+        setMembers(p.getValue());
+        return p.getKey();
     }
 
-    public Map<UUID,InetAddress> getMembers() {
-        return members;
+    public void requestDecree(Decree decree) {
+        LOGGER.info("Requesting decree:" + decree);
+        for(Legislator l: localMembers) {
+            if (l.isPresident()) {
+                l.requestDecree(decree);
+                break;
+            } else if (localMembers.size() == 1)
+                LOGGER.info("Request denied, not the president.");
+        }
     }
 
     public void dispatch(Message message) {
-        output.add(message);
-        LOGGER.debug("Enqueued message " + message);
+        network.enqueueOutput(message);
     }
 
-    public void deliver(Message message) {
-        if(message.getRecipient() == localMember.getMemberID() &&
-                message.getSender() != localMember.getMemberID()) {
-            try{
-                localMember.receive(message);
-            } catch (UnknownMessageException e) {
-                LOGGER.error("Discarding unknown message.");
-            }
-        } else
-            LOGGER.warn("Wrong recipient message discarded.");
+    public void acquire(Message message) {
+        boolean acquired = false;
+        for(Legislator l: localMembers) {
+            if(message.getRecipient() == l.getMemberID() && message.getSender() != l.getMemberID()) {
+                try{
+                    l.read(message);
+                    acquired = true;
+                } catch (UnknownMessageException e) {
+                    LOGGER.error("Discarding unknown message.");
+                }
+            } else if(!acquired)
+                LOGGER.warn("Wrong recipient message. Discarded!");
+        }
     }
 
-    public void broadcast(Message message) {
+    public void announce(Message message) {
         try {
-            tracker.broadcast(message);
+            network.broadcast(message);
         } catch (Exception e) {
             LOGGER.error("Broadcast failed.");
         }
+    }
+
+    public Set<Legislator> getLocalMembers() {
+        return localMembers;
+    }
+
+    public void setMembers(Set<UUID> members) {
+        this.members = members;
+    }
+
+    public Set<UUID> getMembers() {
+        return members;
     }
 }

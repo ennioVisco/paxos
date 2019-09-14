@@ -1,12 +1,12 @@
 package Base;
 
+import Networking.PeerNode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.LinkedTransferQueue;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -16,7 +16,7 @@ class LedgerTest {
 
     @BeforeEach
     void setUp() {
-        Chamber chamber = new Chamber(new LinkedTransferQueue<>());
+        Chamber chamber = new Chamber(new PeerNode());
         Legislator l = new Legislator(chamber);
         ledger = new Ledger(l);
         Set<UUID> ls = new HashSet<>();

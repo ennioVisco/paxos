@@ -1,15 +1,14 @@
 package MajorityStrategies;
 
 import Base.Chamber;
-import Base.Legislator;
+import Networking.PeerNode;
+import Testing.Generics;
 import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.LinkedTransferQueue;
 
 class RandomMajorityTest {
 
@@ -17,18 +16,19 @@ class RandomMajorityTest {
 
     @BeforeEach
     void setUp() {
-        Chamber c = new Chamber(new LinkedTransferQueue<>());
-        Legislator l1 = new Legislator(c);
-        Legislator l2 = new Legislator(c);
-        Legislator l3 = new Legislator(c);
-        Legislator l4 = new Legislator(c);
-        Legislator l5 = new Legislator(c);
-        ls = new HashSet<>();
-        ls.add(l1.getMemberID());
-        ls.add(l2.getMemberID());
-        ls.add(l3.getMemberID());
-        ls.add(l4.getMemberID());
-        ls.add(l5.getMemberID());
+        PeerNode p1 = new PeerNode(true);
+        Chamber c = p1.getChamber();
+
+        new Thread(p1).start();
+        Generics.trySleep(50);
+
+
+        for(int _ = 0; _ < 4; _++) {
+            new Thread(new PeerNode(c)).start();
+            Generics.trySleep(50);
+        }
+
+        ls = c.getMembers();
     }
 
     @Test

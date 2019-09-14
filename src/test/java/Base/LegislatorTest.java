@@ -1,6 +1,7 @@
 package Base;
 
 import Messages.*;
+import Networking.PeerNode;
 import javafx.util.Pair;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -8,7 +9,6 @@ import org.junit.jupiter.api.Test;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.LinkedTransferQueue;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -18,7 +18,7 @@ class LegislatorTest {
 
     @BeforeEach
     void setUp() {
-        Chamber chamber = new Chamber(new LinkedTransferQueue<>());
+        Chamber chamber = new Chamber(new PeerNode());
         l = new Legislator(chamber);
         ballotID = new BallotID(0, l.getMemberID());
     }
@@ -51,7 +51,7 @@ class LegislatorTest {
         BallotID bound = new BallotID(1, l.getMemberID());
         Message m = new NextBallotMessage(l.getMemberID(),bound,l);
         try {
-            LastVoteMessage lv = (LastVoteMessage) l.receive(m);
+            LastVoteMessage lv = (LastVoteMessage) l.read(m);
             assertEquals(bound, lv.getBound());
             assertEquals(lv.getVote().getDecree(), BasicDecrees.BLANK_DECREE);
             //TODO: test more complex cases
@@ -71,7 +71,7 @@ class LegislatorTest {
         l.nextBallot(); //Increment lastTriedBallot to simulate previous NextBallot message
         //TODO: test more complex cases
         try {
-            BeginBallotMessage bb = (BeginBallotMessage) l.receive(m);
+            BeginBallotMessage bb = (BeginBallotMessage) l.read(m);
             assertTrue(ballotID.equals(bb.getBallot().getBallotID()));
             assertEquals(BasicDecrees.TRIVIAL_DECREE, bb.getBallot().getDecree());
         } catch (UnknownMessageException e) {
@@ -92,7 +92,7 @@ class LegislatorTest {
         Message m = new BeginBallotMessage(l.getMemberID(),b,l);
         l.getLedger().setNextBallot(b.getBallotID());
         try {
-            VotedMessage v = (VotedMessage) l.receive(m);
+            VotedMessage v = (VotedMessage) l.read(m);
             assertEquals(d, v.getVote().getDecree());
             //TODO: test more complex cases
         } catch (UnknownMessageException e) {
@@ -114,7 +114,7 @@ class LegislatorTest {
         Vote v = new Vote(l, b, d);
         Message m = new VotedMessage(l.getMemberID(), v, l);
         try {
-            SuccessMessage s = (SuccessMessage) l.receive(m);
+            SuccessMessage s = (SuccessMessage) l.read(m);
             assertEquals(s.getBallot().getBallotID(), b.getBallotID());
         } catch (UnknownMessageException e) {
             e.printStackTrace();
@@ -131,7 +131,7 @@ class LegislatorTest {
         Ballot b = new Ballot(ballotID, d, q);
         Message m = new SuccessMessage(b, l);
         try {
-            SuccessMessage s = (SuccessMessage) l.receive(m);
+            SuccessMessage s = (SuccessMessage) l.read(m);
             assertEquals(s.getBallot(), b);
         } catch (UnknownMessageException e) {
             e.printStackTrace();

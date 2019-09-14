@@ -1,32 +1,32 @@
-package Execution.Runnables;
+package Networking.Runnables;
 
-import Messages.Message;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TransferQueue;
 
-public class Producer implements Runnable {
+public class Consumer<T> implements Runnable {
     protected final Logger LOGGER = LogManager.getLogger();
 
-    private String name;
+    private final String name;
     private volatile boolean active;
-    private TransferQueue<Message> transferQueue;
-    private Producable producer;
+    private final Consumable<T> consumer;
+    private TransferQueue<T> transferQueue;
 
-    public Producer(String name, TransferQueue<Message> transferQueue, Producable producer) {
+    public Consumer(String name, TransferQueue<T> transferQueue, Consumable<T> consumer) {
         this.name = name;
         this.active = true;
-        this.producer = producer;
+        this.consumer = consumer;
         this.transferQueue = transferQueue;
     }
 
     @Override
     public void run() {
         while(active) {
+            T message;
             try {
-                transferQueue.tryTransfer(producer.produce(), 1000, TimeUnit.MILLISECONDS);
+                message = transferQueue.take();
+                consumer.consume(message);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

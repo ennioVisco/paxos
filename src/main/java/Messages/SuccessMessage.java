@@ -27,7 +27,7 @@ public class SuccessMessage implements Message {
         return ballot;
     }
 
-
+    @Override
     public void setRecipient(UUID recipient) {
         this.recipient = recipient;
     }

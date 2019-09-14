@@ -1,6 +1,6 @@
 package App;
 
-import Execution.TrackerNode;
+import Networking.TrackerNode;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -9,9 +9,6 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class FileSystemApp {
     private static final Logger LOGGER = LogManager.getLogger();
@@ -59,6 +56,8 @@ public class FileSystemApp {
 
     private void runPeer() {
         LOGGER.debug("Peer should now do something");
+        FileSystemPeer peer = new FileSystemPeer();
+        peer.run();
 
     }
 
@@ -92,42 +91,6 @@ public class FileSystemApp {
     }
 
     /**
-     * Reads application data from a file
-     *
-     * @param fileName file of application data
-     * @return array of double values
-     */
-    private double[] readData(String fileName) {
-
-        List data = new ArrayList<Double>();
-        double[] mydata = null;
-
-        /*try (var reader = Files.newBufferedReader(Paths.get(fileName));
-             var csvReader = new CSVReaderBuilder(reader).build()) {
-
-            String[] nextLine;
-
-            while ((nextLine = csvReader.readNext()) != null) {
-
-                for (String e : nextLine) {
-
-                    data.add(Double.parseDouble(e));
-                }
-            }
-
-            mydata = ArrayUtils.toPrimitive(data.toArray(new Double[0]));
-
-        } catch (IOException ex) {
-
-            System.err.println("Failed to read file");
-            System.err.println(ex.toString());
-            System.exit(1);
-        }*/
-
-        return mydata;
-    }
-
-    /**
      * Generates application command line options
      *
      * @return application <code>Options</code>
@@ -144,7 +107,6 @@ public class FileSystemApp {
      * Prints application help
      */
     private void printAppHelp() {
-
         Options options = getOptions();
 
         HelpFormatter formatter = new HelpFormatter();
