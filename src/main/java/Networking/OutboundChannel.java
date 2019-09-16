@@ -48,7 +48,7 @@ public class OutboundChannel implements Consumable<UDPMessage>, Runnable {
 
     @Override
     public void consume(UDPMessage message) {
-        LOGGER.debug("Sending message " + message);
+        //LOGGER.debug("Sending message " + message);
         try {
             send(message.getMessage(), message.getRecipient());
         } catch (IOException e) {

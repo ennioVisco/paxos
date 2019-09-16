@@ -23,7 +23,7 @@ class RandomMajorityTest {
         Generics.trySleep(50);
 
 
-        for(int _ = 0; _ < 4; _++) {
+        for(int i = 0; i < 4; i++) {
             new Thread(new PeerNode(c)).start();
             Generics.trySleep(50);
         }

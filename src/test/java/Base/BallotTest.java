@@ -35,18 +35,18 @@ class BallotTest {
     @Test
     void addVote() {
         assertNotEquals(b.getVotes().size(), b.getQuorum().size());
-        b.addVote(new Vote(l1, b, BasicDecrees.TRIVIAL_DECREE));
-        b.addVote(new Vote(l2, b, BasicDecrees.TRIVIAL_DECREE));
+        b.addVote(new Vote(l1.getMemberID(), b.getBallotID(), BasicDecrees.TRIVIAL_DECREE));
+        b.addVote(new Vote(l2.getMemberID(), b.getBallotID(), BasicDecrees.TRIVIAL_DECREE));
         assertEquals(b.getVotes().size(), b.getQuorum().size());
-        b.addVote(new Vote(l3, b, BasicDecrees.TRIVIAL_DECREE));
+        b.addVote(new Vote(l3.getMemberID(), b.getBallotID(), BasicDecrees.TRIVIAL_DECREE));
         assertEquals(b.getVotes().size(), b.getQuorum().size());
     }
 
     @Test
     void checkStatus() {
         assertFalse(b.checkStatus());
-        b.addVote(new Vote(l1, b, BasicDecrees.TRIVIAL_DECREE));
-        b.addVote(new Vote(l2, b, BasicDecrees.TRIVIAL_DECREE));
+        b.addVote(new Vote(l1.getMemberID(), b.getBallotID(), BasicDecrees.TRIVIAL_DECREE));
+        b.addVote(new Vote(l2.getMemberID(), b.getBallotID(), BasicDecrees.TRIVIAL_DECREE));
         assertTrue(b.checkStatus());
     }
 

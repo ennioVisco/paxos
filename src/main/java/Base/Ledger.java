@@ -58,8 +58,8 @@ public class Ledger {
      */
     void addPreviousVote(Vote vote) {
         //TODO: verify this is right (step 4)
-        Ballot previous = previousVote.getBallot();
-        Ballot current = vote.getBallot();
+        BallotID previous = previousVote.getBallot();
+        BallotID current = vote.getBallot();
         if(current.compareTo(previous) < 0)
             previousVote = vote;
     }

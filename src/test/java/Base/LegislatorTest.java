@@ -111,7 +111,7 @@ class LegislatorTest {
         q.add(l.getMemberID());
         processLastVote();
         Ballot b = new Ballot(ballotID, d, q);
-        Vote v = new Vote(l, b, d);
+        Vote v = new Vote(l.getMemberID(), b.getBallotID(), d);
         Message m = new VotedMessage(l.getMemberID(), v, l);
         try {
             SuccessMessage s = (SuccessMessage) l.read(m);

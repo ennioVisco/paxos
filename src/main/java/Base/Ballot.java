@@ -3,6 +3,7 @@ package Base;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -14,7 +15,7 @@ import java.util.UUID;
  * 3) B_vot := A subset of B_qrm that casted a vote
  * 4) B_bal := A ballot number (id)
  */
-public class Ballot implements Comparable<Ballot> {
+public class Ballot implements Comparable<Ballot>, Serializable {
     //TODO: Probably 'Character' (i.e. positive integers) is better than Integer to exploit all the numbers,
     // after all a bijection can easily be defined between Integers and positive numbers.
     private final BallotID ballotID;
@@ -36,8 +37,8 @@ public class Ballot implements Comparable<Ballot> {
      * @param vote legislator who wants to pass the decree of the current ballot.
      */
     public void addVote(Vote vote) {
-        if(quorum.contains(vote.getLegislator().getMemberID()))
-            if(!votes.contains(vote.getLegislator().getMemberID()))
+        if(quorum.contains(vote.getLegislator()))
+            if(!votes.contains(vote.getLegislator()))
                 votes.add(vote);
     }
 

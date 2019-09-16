@@ -20,8 +20,12 @@ public class TrackerNode implements Tracker {
 
     private Map<UUID, InetSocketAddress> members;
 
+    private Tracker remoteObject;
+    private Registry registry;
+
     public TrackerNode() {
         members = new HashMap<>();
+        remoteObject = null;
     }
 
     public static void main(String[] args){
@@ -30,14 +34,14 @@ public class TrackerNode implements Tracker {
     }
 
     public void run() {
-        System.setProperty("java.rmi.server.hostname","192.168.1.122");
-        LOGGER.info("Starting tracker at " + Settings.TRACKER);
+        System.setProperty("java.rmi.server.hostname",Settings.TRACKER2);
+        LOGGER.info("Starting tracker at " + Settings.TRACKER2);
         try {
             TrackerNode obj = new TrackerNode();
             Tracker stub = (Tracker) UnicastRemoteObject.exportObject(obj, 0);
-
+            remoteObject = stub;
             // Bind the remote object's stub in the registry
-            Registry registry = LocateRegistry.createRegistry(1099);
+            registry = LocateRegistry.createRegistry(1099);
             registry.bind("PaxosTracker", stub);
             //Naming.rebind(Settings.TRACKER, new TrackerNode());
             LOGGER.info("Tracker ready.");
@@ -45,6 +49,14 @@ public class TrackerNode implements Tracker {
             LOGGER.error("Tracker exception: " + e.toString());
             e.printStackTrace();
         }
+    }
+
+    public Tracker getRemoteObject() {
+        return remoteObject;
+    }
+
+    public Registry getRegistry() {
+        return registry;
     }
 
     private void dispatch(Message message, InetSocketAddress legislator) throws RemoteException {

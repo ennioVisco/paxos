@@ -50,12 +50,10 @@ public class FileSystemApp {
     }
 
     private void runServer() {
-        LOGGER.debug("Server should now do something");
         TrackerNode.main(null);
     }
 
     private void runPeer() {
-        LOGGER.debug("Peer should now do something");
         FileSystemPeer peer = new FileSystemPeer();
         peer.run();
 

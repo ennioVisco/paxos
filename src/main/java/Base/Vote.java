@@ -4,7 +4,9 @@ import javafx.util.Pair;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.Serializable;
 import java.util.HashSet;
+import java.util.UUID;
 
 /**
  * The Base.Vote class is an immutable data class defined like this v:= <l,b,d>
@@ -12,14 +14,14 @@ import java.util.HashSet;
  * 2) b is the current ballot
  * 3) d is the decree being voted
  */
-public class Vote implements Comparable<Vote> {
+public class Vote implements Comparable<Vote>, Serializable {
 
-    private Legislator legislator;
-    private Ballot ballot;
+    private UUID legislator;
+    private BallotID ballot;
     private Decree decree;
 
     @Contract(pure = true)
-    public Vote(Legislator legislator, Ballot ballot, Decree decree) {
+    public Vote(UUID legislator, BallotID ballot, Decree decree) {
         this.legislator = legislator;
         this.ballot = ballot;
         this.decree = decree;
@@ -30,14 +32,14 @@ public class Vote implements Comparable<Vote> {
     public static Vote NullVote(Legislator l) {
         BallotID bid = new BallotID(-1, l.getMemberID());
         Ballot ballot = new Ballot(bid, BasicDecrees.BLANK_DECREE, new HashSet<>());
-        return new Vote (l, ballot, BasicDecrees.BLANK_DECREE);
+        return new Vote (l.getMemberID(), ballot.getBallotID(), BasicDecrees.BLANK_DECREE);
     }
 
-    public Legislator getLegislator() {
+    public UUID getLegislator() {
         return legislator;
     }
 
-    public Ballot getBallot() {
+    public BallotID getBallot() {
         return ballot;
     }
 

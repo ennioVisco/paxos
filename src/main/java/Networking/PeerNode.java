@@ -4,21 +4,21 @@ import Base.Chamber;
 import Base.Decree;
 import Base.Legislator;
 import Base.Settings;
+import Messages.AliveMessage;
 import Messages.JoinedMessage;
 import Messages.Message;
+import Networking.Runnables.TimedAction;
 import javafx.util.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.net.InetSocketAddress;
-import java.rmi.AccessException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.*;
-import java.util.concurrent.LinkedTransferQueue;
-import java.util.concurrent.TransferQueue;
+import java.util.concurrent.*;
 
 public class PeerNode implements Runnable{
     private static final Logger LOGGER = LogManager.getLogger();
@@ -68,6 +68,10 @@ public class PeerNode implements Runnable{
         // Setting up Paxos starting state
         new Legislator(chamber);
 
+        // Periodically inform of being alive
+        int T = Settings.PROCESSING_TIME + 2 * Settings.TRANSFER_TIME;
+        new TimedAction(sendAlive(), T + 8000);
+
         while(active) {
             try {
                 Message m = iQueue.take();
@@ -110,13 +114,18 @@ public class PeerNode implements Runnable{
         // Now that communication channels are almost ready...
         // Contact tracker
         try {
-            Registry registry = LocateRegistry.getRegistry(Settings.TRACKER);
+            Registry registry = LocateRegistry.getRegistry(Settings.TRACKER2);
             tracker = (Tracker) registry.lookup("PaxosTracker");
-            LOGGER.info("Tracker found at " + Settings.TRACKER);
+            LOGGER.info("Tracker found at " + Settings.TRACKER2);
         } catch(NotBoundException | RemoteException | NullPointerException e) {
             LOGGER.fatal("Unable to contact the tracker! Silently continuing (will simulate later on)...");
             e.getMessage();
         }
+    }
+
+    private Runnable sendAlive() {
+        return () ->
+                broadcast(new AliveMessage(null,chamber.getLocalMembers().iterator().next()));
     }
 
     public void localRequest(Decree decree) {
@@ -138,14 +147,16 @@ public class PeerNode implements Runnable{
      */
     public Pair<UUID, Set<UUID>> join() {
         try {
-            //TODO: should pass UDP socket
+            if (tracker != null) {
             Pair<UUID, Map<UUID, InetSocketAddress>> status = tracker.join(address);
-            peers = status.getValue();
-            return new Pair<>(status.getKey(),peers.keySet());
-        } catch (RemoteException | NullPointerException e) {
-            LOGGER.error("Unable to enter the network... simulating locally!");
+                peers = status.getValue();
+                return new Pair<>(status.getKey(), peers.keySet());
+            } else
+                throw new RemoteException();
+        } catch (RemoteException e) {
+            LOGGER.error("Tracker not found at " + Settings.TRACKER2 + "... simulating locally!");
+            e.printStackTrace();
             return simulateTracker();
-
         }
     }
 
@@ -170,6 +181,7 @@ public class PeerNode implements Runnable{
     }
 
     public void broadcast(Message m) {
+        Legislator l = new ArrayList<>(chamber.getLocalMembers()).get(0);
         for(UUID r : peers.keySet()) {
             m.setRecipient(r);
             enqueueOutput(m);
@@ -178,13 +190,17 @@ public class PeerNode implements Runnable{
 
     public void enqueueOutput(Message m) {
         UUID r = m.getRecipient();
-        InetSocketAddress d = peers.get(r);
-        if(d != null) {
-            LOGGER.debug("Message to <" + d + "> enqueued on outbound queue: " + m);
-            oQueue.add(new UDPMessage(m,d));
-        } else {
-            LOGGER.debug("Message to local peer: " + m);
-            handleMessage(m);
+
+        Legislator l = new ArrayList<>(chamber.getLocalMembers()).get(0);
+        if(!r.equals(l.getMemberID())) {
+            InetSocketAddress d = peers.get(r);
+            if (d != null) {
+                //LOGGER.debug("Message to <" + d + "> enqueued on outbound queue: " + m);
+                oQueue.add(new UDPMessage(m, d));
+            } else {
+                LOGGER.debug("Message to local peer: " + m);
+                handleMessage(m);
+            }
         }
 
     }

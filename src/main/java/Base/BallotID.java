@@ -3,9 +3,10 @@ package Base;
 import javafx.util.Pair;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.Serializable;
 import java.util.UUID;
 
-public class BallotID implements Comparable<BallotID> {
+public class BallotID implements Comparable<BallotID>, Serializable {
     private Pair<Integer, UUID> id;
 
     public BallotID(Integer i, UUID l) {
@@ -46,5 +47,9 @@ public class BallotID implements Comparable<BallotID> {
             return id.getKey() == b.getKey() && id.getValue() == b.getValue();
         }
         return false;
+    }
+
+    public String toString2() {
+        return id.getKey().toString() + id.getValue().toString();
     }
 }

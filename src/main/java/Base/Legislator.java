@@ -6,6 +6,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.Serializable;
 import java.util.*;
 
 /**
@@ -13,7 +14,7 @@ import java.util.*;
  * Most actions are triggered on acquire of a message from other legislators.
  * Any legislator is bound to a Chamber.
  */
-public class Legislator {
+public class Legislator implements Serializable {
     private static final Logger LOGGER = LogManager.getLogger();
 
     // External interfaces
@@ -134,7 +135,7 @@ public class Legislator {
             return null;
         }
         LOGGER.info("Ignoring the LastVoteMessage just received with <Bound,Vote>:" +
-                    "<" + b + "," + v.toString() + ">");
+                    "<" + b.toString2() + "," + v.toString() + ">");
         return null;
     }
 
@@ -150,7 +151,7 @@ public class Legislator {
     private Message vote(UUID r, Ballot b) {
         //TODO: should be able to choose not to vote
         if(b.getBallotID().compareTo(ledger.getNextBallotID()) >= 0) {
-            Vote v = new Vote(this, b, b.getDecree());
+            Vote v = new Vote(this.getMemberID(), b.getBallotID(), b.getDecree());
             ledger.addPreviousVote(v);
             Message m = new VotedMessage(r, v, this);
             send(m);
@@ -167,7 +168,7 @@ public class Legislator {
      * @return the Success message sent or null.
      */
     private Message processVote(Vote v) {
-        if(v.getBallot().getBallotID().equals(ledger.getLastTriedBallot())) {
+        if(v.getBallot().equals(ledger.getLastTriedBallot())) {
             currentBallot.addVote(v);
             if (currentBallot.getVotes().size() == currentBallot.getQuorum().size()) {
                 Message m = new SuccessMessage(currentBallot, this);
@@ -212,7 +213,7 @@ public class Legislator {
         //TODO: verify to satisfy B3
         Vote maxVote = Vote.NullVote(this);
         for(Vote v : ledger.getLastVotesReceived()) {
-            if(v.getBallot().getBallotID().compareTo(maxVote.getBallot().getBallotID()) > 0)
+            if(v.getBallot().compareTo(maxVote.getBallot()) > 0)
                 maxVote = v;
         }
 
@@ -237,7 +238,14 @@ public class Legislator {
         return president;
     }
 
+    public void setPresident(boolean status) {
+        if(!president && status)
+            LOGGER.debug("I am now the president!");
+        president = status;
+    }
+
     public void requestDecree(Decree d) {
         decrees.add(d);
+        nextBallot();
     }
 }
